@@ -1,13 +1,11 @@
 import React, { useEffect, useState } from "react";
-import Footer from "./Footer";
-import Navham from "./Navham";
-import jwt from "jwt-decode";
-import axios from "axios";
-import { Button, Card, Col, Container, Modal, Row } from "react-bootstrap";
-import { Link, useNavigate } from "react-router-dom";
+import { Button, Card, Col, Modal, Row } from "react-bootstrap";
+import { useNavigate } from "react-router-dom";
 import AuthService from "../services/auth.service";
 import Login from "./Login";
 import { BsChevronRight } from "react-icons/bs";
+import resumesService from "../services/resumes.service";
+import jobresumesService from "../services/jobresumes.service";
 
 function ApplyToJob({ jobId }) {
   const [resumes, setResumes] = useState([]);
@@ -16,20 +14,17 @@ function ApplyToJob({ jobId }) {
   const navigate = useNavigate();
   const user = AuthService.getCurrentUser();
 
-  const getUserResumes = () => {
+  const fetchUserResumes = async (userId, headers) => {
+    const response = await resumesService.fetchUserResumes(userId, headers);
+    setResumes(response);
+  };
+  const getUserResumes = async () => {
     if (user) {
       const userId = user[0];
-      axios
-        .get("https://localhost:7045/api/resumes/user/" + userId)
-        .then((response) => {
-          const notHiddenRes = response.data.filter((res) => !res.isHidden);
-          setResumes(notHiddenRes);
-          console.log(notHiddenRes);
-        })
-        .catch(function (error) {
-          console.log(error);
-          console.log(error.message);
-        });
+      const headers = {
+        Authorization: `Bearer ${user[3]}`,
+      };
+      fetchUserResumes(userId, headers);
     } else {
       console.log("Neprisijungęs");
     }
@@ -41,25 +36,23 @@ function ApplyToJob({ jobId }) {
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
   const handleSelectResume = (id) => setSelectedResume(id);
-  const handleApply = (id, jId) => {
-    console.log(id + " " + jId);
-    axios
-      .post("https://localhost:7045/api/jobsresumes", {
-        resumeId: id,
-        jobId: jId,
-      })
-      .then((response) => {
-        console.log("PAVYKO!");
-        console.log(response);
-      })
-      .catch(function (error) {
-        console.log(error);
-        console.log(error.message);
+  const handleApply = async (id, jId) => {
+    const response = await jobresumesService.applyToJob(id, jId);
+    if (response.status === 201) {
+      navigate("/profile", {
+        state: {
+          status: "success",
+        },
       });
+    }
   };
   const handleToCreateCv = () => {
     navigate("/createresume");
   };
+  const handleToYourResumes = () => {
+    navigate("/resume");
+  };
+
   const handleViewResume = (resumeId) => {
     window.open(`/view/resume?resumeId=${resumeId}`, "_blank");
   };
@@ -86,6 +79,7 @@ function ApplyToJob({ jobId }) {
                   {resumes.map((resume) => (
                     <Col key={resume.id} md={4}>
                       <Card
+                        style={{ minHeight: "350px" }}
                         onClick={() => handleSelectResume(resume.id)}
                         className={
                           selectedResume === resume.id
@@ -98,10 +92,14 @@ function ApplyToJob({ jobId }) {
                           <Card.Subtitle className="mb-3 text-muted">
                             {resume.email}
                           </Card.Subtitle>
-                          <Card.Text>
+                          <Card.Text style={{ minHeight: "192px" }}>
                             Gimimo data: {resume.yearOfBirth.slice(0, 10)}
                             <br />
-                            Aprašymas: {resume.summary}
+                            {resume.summary.length > 240 ? (
+                              <span>{resume.summary.slice(0, 240)}...</span>
+                            ) : (
+                              <span>{resume.summary}</span>
+                            )}
                           </Card.Text>
                           <Button
                             variant="link"
@@ -131,32 +129,42 @@ function ApplyToJob({ jobId }) {
                 </>
               ) : user && user[1] && user[1].includes("Darbdavys") ? (
                 <>
-                  <p>
-                    Tu esi prisijungęs kaip <b>darbdavys</b>, norėdamas
-                    kandidatuoti į darbo skelbimą turi jungtis su savo asmenine
-                    paskyra.
-                  </p>
-                  <br />
-                  <Button>
-                    <Login textColorBlack="b" />
-                  </Button>
+                  <Card.Body>
+                    <Card.Text>
+                      Tu esi prisijungęs kaip <b>darbdavys</b>, norėdamas
+                      kandidatuoti į darbo skelbimą turi jungtis su savo
+                      asmenine paskyra.
+                    </Card.Text>
+                    <Button>
+                      <Login textColorBlack="b" />
+                    </Button>
+                  </Card.Body>
                 </>
               ) : user &&
                 user[1] &&
                 (user[1].includes("Darbuotojas") ||
                   user[1].includes("Administratorius")) ? (
                 <>
-                  <Button onClick={() => handleToCreateCv()}>
-                    Susikurk CV
-                  </Button>
+                  <Card.Body>
+                    <Card.Text>
+                      Tavo CV nėra matomi, o jei neturi lengvai susikurk!.
+                    </Card.Text>
+                    <Button className="me-3" onClick={() => handleToCreateCv()}>
+                      Susikurk CV
+                    </Button>
+                    <Button onClick={() => handleToYourResumes()}>
+                      Tavo CV
+                    </Button>
+                  </Card.Body>
                 </>
               ) : (
                 <>
-                  <p>Kad galėtum kandidatuoti, turi:</p>
-                  <br />
-                  <Button>
-                    <Login textColorBlack="b" />
-                  </Button>
+                  <Card.Body>
+                    <Card.Text>Kad galėtum kandidatuoti, turi:</Card.Text>
+                    <Button>
+                      <Login textColorBlack="b" />
+                    </Button>
+                  </Card.Body>
                 </>
               )}
             </Row>

@@ -11,7 +11,6 @@ import Profile from "./components/Profile";
 import Jobcandidates from "./components/JobCandidates";
 import CompanyProfile from "./components/CompanyProfile";
 import SavedJobs from "./components/SavedJobs";
-import AnalyzedData from "./components/AnalysedData";
 import UserResumes from "./components/UserResumes";
 import FilteredJobs from "./components/FilteredJobs";
 import Resumes from "./components/Resumes";
@@ -45,14 +44,15 @@ function App() {
             <Route path="/jobs/:id" element={<Job />} exact />
             <Route path="/profile" element={<Profile />} />
             <Route path="/jobs/candidates" element={<Jobcandidates />} />
-            <Route path="/company/profile" element={<CompanyProfile />} />
-            <Route path="/jobSearch" element={<AnalyzedData />} />
+            <Route
+              path="/company/profile/:companyId"
+              element={<CompanyProfile />}
+            />
             <Route path="/saved/jobs" element={<SavedJobs />} />
             <Route path="/user/resumes" element={<UserResumes />} />
             <Route path="/jobs" element={<FilteredJobs />} />
             <Route path="/view/resume" element={<ViewResume />} />
             <Route path="/calculator" element={<Calculatesalary />} />
-            {/* <Route path="/downloadpdf" element={<DownloadResume />} /> */}
           </Routes>
         </Router>
       </div>

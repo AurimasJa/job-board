@@ -83,7 +83,7 @@ function Login(props) {
     let errors = {};
     const passwordRegex =
       /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+~`-])[A-Za-z\d!@#$%^&,.*\/\\()_+~`-]{8,}$/;
-    const companyCodeRegex = /^\d{7,9}$/;
+    const companyCodeRegex = /^\d{9}$/;
     const emailRegex = /\S+@\S+\.\S+/;
     const phoneRegex = /^\+370\d{6}(\d{1})?(\d{2})?$/;
 
@@ -178,9 +178,7 @@ function Login(props) {
         registerData.password,
         registerData.dateOfBirth
       );
-      console.log(errorss);
       if (errorss === "success") {
-        console.log("asdasdasd");
         setButtonClicked(true);
         setShowRegistrasionSuccessful(true);
         setTimeout(function () {
@@ -191,7 +189,6 @@ function Login(props) {
       } else if (typeof errorss === "string") {
         setCustomError(errorss);
       } else {
-        console.log(typeof errorss);
         const errorObj = Object.entries(errorss).reduce((acc, [key, value]) => {
           const newKey = key.toLowerCase();
           acc[newKey] = value[0];
@@ -234,7 +231,6 @@ function Login(props) {
       } else if (typeof errorss === "string") {
         setCustomError(errorss);
       } else {
-        console.log(typeof errorss);
         const errorObj = Object.entries(errorss).reduce((acc, [key, value]) => {
           const newKey = key.toLowerCase();
           acc[newKey] = value[0];
@@ -248,7 +244,6 @@ function Login(props) {
   };
   const handleInputChange = (event) => {
     const { name, value } = event.target;
-    console.log(name + " " + value);
     if (activeRegLog === "login") {
       setLoginData({ ...loginData, [name]: value });
     } else if (activeRegLog === "regComp") {
@@ -261,7 +256,7 @@ function Login(props) {
   const handleRegLogClick = (tab) => {
     setActiveRegLog(tab);
   };
-  const textColorBlack = props.textColorBlack === "b" ? "black" : "";
+  const textColorBlack = props.textColorBlack === "b" ? "#212529" : "";
 
   return (
     <>
@@ -291,8 +286,8 @@ function Login(props) {
               <p>Registracija sėkminga, galite prisijungti!</p>
             )}
             {customError && <p style={{ color: "red" }}>{customError}</p>}
-            <Col md={6}>
-              <div className="d-flex justify-content-center">
+            <Col md={8}>
+              <div className="d-flex justify-content-evenly mb-3">
                 <Button
                   variant={activeRegLog === "login" ? "primary" : "secondary"}
                   onClick={() => handleRegLogClick("login")}
@@ -315,7 +310,15 @@ function Login(props) {
                 </Button>
               </div>
               {buttonClicked ? (
-                <Spinner animation="grow" variant="dark" />
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+                  <Spinner animation="grow" />
+                </div>
               ) : activeRegLog === "login" ? (
                 <Form onSubmit={handleLoginSubmit}>
                   <Form.Group controlId="formBasicEmail" className="mb-3">
@@ -567,7 +570,8 @@ function Login(props) {
                   >
                     <Form.Label>Trumpai apie save</Form.Label>
                     <Form.Control
-                      type="text"
+                      as="textarea"
+                      rows={3}
                       placeholder="Įvesk trumpai apie save"
                       name="aboutSection"
                       value={registerData.aboutSection}
@@ -614,13 +618,15 @@ function Login(props) {
                 </Form>
               )}
             </Col>
-            <Col md={6}>
-              <h3>About Us</h3>
-              <p>
-                {activeRegLog === "login"
-                  ? "Ačiū, kad naudojatės šia sistema. Mes tikime, kad ši sistema padės Jums susirasti sau tinkamą darbą, o jei esate darbdavys, tikime, kad surasite sau tinkamą darbuotoją!"
-                  : "Užsiregistruodamas sistemoje tu mums parodai, kad tai yra reikalinga Tau ir tikime, kad surasi tai, ko ieškai. Svarbiausia - nebijok bandyti."}
-              </p>
+            <Col md={4} style={{ margin: "auto" }}>
+              <div className=" justify-content-center text-center align-content-center align-items-center">
+                <h3>AČIŪ</h3>
+                <p>
+                  {activeRegLog === "login"
+                    ? "Ačiū, kad naudojatės šia sistema. Mes tikime, kad ši sistema padės Jums susirasti sau tinkamą darbą, o jei esate darbdavys, tikime, kad surasite sau tinkamą darbuotoją!"
+                    : "Užsiregistruodamas sistemoje tu mums parodai, kad tai yra reikalinga Tau ir tikime, kad surasi tai, ko ieškai. Svarbiausia - nebijok bandyti."}
+                </p>
+              </div>
             </Col>
           </Row>
         </Modal.Body>

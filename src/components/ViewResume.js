@@ -6,6 +6,7 @@ import Navham from "./Navham";
 import { useLocation, useNavigate } from "react-router-dom";
 import Footer from "./Footer";
 import { Container } from "react-bootstrap";
+import resumesService from "../services/resumes.service";
 
 function ViewResume() {
   const navigate = useNavigate();
@@ -29,22 +30,15 @@ function ViewResume() {
       navigate("/");
     }
   }, []);
-  useEffect(() => {
-    async function fetchResumes() {
-      console.log(user);
-      axios
-        .get(`https://localhost:7045/api/resumes/${resumeId}`)
-        .then((resp) => {
-          if (user && user[0] && user[0] === resp.data.userId) {
-            setResumes(resp.data);
-          } else {
-            console.log(user[0]);
-          }
-        });
+  const fetchResume = async (resumeId) => {
+    const response = await resumesService.fetchResume(resumeId);
+    if (user && user[0] && user[0] === response.data.userId) {
+      setResumes(response.data);
     }
-    fetchResumes();
+  };
+  useEffect(() => {
+    fetchResume(resumeId);
   }, []);
-  console.log(resumes);
   return (
     <>
       <div>

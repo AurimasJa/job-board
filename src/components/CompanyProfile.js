@@ -1,37 +1,43 @@
 import React, { useEffect, useState } from "react";
 import Footer from "./Footer";
 import Navham from "./Navham";
-import CountUp from "react-countup";
-import axios from "axios";
 import cities from "../data/cities";
 import {
   Button,
   Card,
   Col,
   Container,
-  FloatingLabel,
   Form,
   Modal,
   Row,
 } from "react-bootstrap";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import JobList from "./JobList";
 import JobSearch from "./JobSearch";
-import { BsFillPencilFill } from "react-icons/bs";
+import { BsFillPencilFill, BsPersonFill, BsPhone } from "react-icons/bs";
+import { TiBusinessCard } from "react-icons/ti";
 import CreateJob from "./CreateJob";
 import { Typeahead } from "react-bootstrap-typeahead";
 import authService from "../services/auth.service";
+import { GoBrowser, GoMail } from "react-icons/go";
+import { SlLocationPin } from "react-icons/sl";
+import { FaAddressCard } from "react-icons/fa";
+import jobService from "../services/job.service";
+import usersService from "../services/users.service";
 
 function CompanyProfile({ id }) {
   const location = useLocation();
+  const { companyId } = useParams();
   const [company, setCompany] = useState(null);
   const [companyLoaded, setCompanyLoaded] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-
   const navigate = useNavigate();
   const [jobs, setJobs] = useState([]);
-
+  const [number, setNumber] = useState({ phoneNumber: "+3706*******" });
+  function handleUnhidePhone(phoneNumber) {
+    setNumber({ phoneNumber: phoneNumber });
+  }
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
   const [errors, setErrors] = useState({});
@@ -73,38 +79,12 @@ function CompanyProfile({ id }) {
     const headers = {
       Authorization: `Bearer ${user[3]}`,
     };
-    const checkForErrors = await axios
-      .put(
-        `https://localhost:7045/api/users/company/${user[0]}`,
-        {
-          name: companyDataUpdate.name,
-          surname: companyDataUpdate.surname,
-          email: companyDataUpdate.email,
-          password: companyDataUpdate.password,
-          newPassword: companyDataUpdate.newPassword,
-          aboutSection: companyDataUpdate.aboutSection,
-          city: city,
-          address: companyDataUpdate.address,
-          site: companyDataUpdate.site,
-          phoneNumber: companyDataUpdate.phoneNumber,
-          companyName: companyDataUpdate.companyName,
-          companyCode: companyDataUpdate.companyCode,
-        },
-        {
-          headers,
-        }
-      )
-      .then((response) => {
-        localStorage.setItem("user", JSON.stringify(response.data));
-        return "success";
-      })
-      .catch(function (error) {
-        if (error.response) {
-          return error.response.data;
-        } else {
-          console.error(error);
-        }
-      });
+    const checkForErrors = await usersService.updateCompanyData(
+      user[0],
+      companyDataUpdate,
+      city,
+      headers
+    );
     if (checkForErrors === "success") {
       const timer = setTimeout(() => {
         window.location.reload();
@@ -115,44 +95,28 @@ function CompanyProfile({ id }) {
     }
   };
 
+  const fetchCompanyJobs = async (id) => {
+    const companyJobs = await jobService.fetchCompanyJobs(id);
+    setJobs(companyJobs.data);
+  };
+  const fetchCompanyIdJobs = async (companyId) => {
+    const resp = await jobService.fetchCompanyJobs(companyId);
+    const notHiddenJobs = resp.data.filter((job) => !job.isHidden);
+    setJobs(notHiddenJobs);
+  };
+  const fetchUsersCompany = async (id) => {
+    const resp = await usersService.getUsersCompany(id);
+    setCompany(resp);
+    setCompanyLoaded(true);
+  };
   useEffect(() => {
-    if (location.pathname !== "/profile") {
-      setCompany(location.state.company);
-    }
     async function fetchJob() {
       if (location.pathname === "/profile") {
-        axios
-          .get("https://localhost:7045/api/users/company/" + id)
-          .then((resp) => {
-            console.log(resp);
-            setCompany(resp.data);
-            setCompanyLoaded(true);
-          });
-        axios
-          .get("https://localhost:7045/api/job/company/" + id)
-          .then((resp) => {
-            setJobs(resp.data);
-          });
+        fetchUsersCompany(id);
+        fetchCompanyJobs(id);
       } else {
-        axios
-          .get(
-            "https://localhost:7045/api/job/company/" +
-              location.state.company.id
-          )
-          .then((resp) => {
-            const notHiddenJobs = resp.data.filter((job) => !job.isHidden);
-            setJobs(notHiddenJobs);
-            setCompanyLoaded(true);
-          });
-        axios
-          .get(
-            "https://localhost:7045/api/users/company/" +
-              location.state.company.id
-          )
-          .then((resp) => {
-            console.log(resp);
-            setCompany(resp.data);
-          });
+        fetchCompanyIdJobs(companyId);
+        fetchUsersCompany(companyId);
       }
     }
     fetchJob();
@@ -203,7 +167,6 @@ function CompanyProfile({ id }) {
                     </Form.Label>
                     <Form.Control
                       type="text"
-                      className="border-dark"
                       placeholder="Įvesk įmonės pavadinimą"
                       name="companyName"
                       defaultValue={company.companyName}
@@ -220,7 +183,6 @@ function CompanyProfile({ id }) {
                     </Form.Label>
                     <Form.Control
                       type="number"
-                      className="border-dark"
                       placeholder="Įvesk įmonės kodą"
                       name="companyCode"
                       defaultValue={Number(company.companyCode)}
@@ -242,7 +204,6 @@ function CompanyProfile({ id }) {
                       </Form.Label>
                       <Form.Control
                         type="text"
-                        className="border-dark"
                         defaultValue={company.name}
                         placeholder="Įvesk kompanijos atstovo vardą"
                         onChange={handleInputChange}
@@ -259,7 +220,6 @@ function CompanyProfile({ id }) {
                       </Form.Label>
                       <Form.Control
                         type="text"
-                        className="border-dark"
                         defaultValue={company.surname}
                         placeholder="Įvesk kompanijos atstovo pavardę"
                         onChange={handleInputChange}
@@ -272,8 +232,7 @@ function CompanyProfile({ id }) {
                       Telefono numeris
                     </Form.Label>
                     <Form.Control
-                      type="number"
-                      className="border-dark"
+                      type="text"
                       placeholder="Jūsų telefono numeris"
                       defaultValue={company.phoneNumber}
                       onChange={handleInputChange}
@@ -292,7 +251,6 @@ function CompanyProfile({ id }) {
                       as="textarea"
                       rows={3}
                       placeholder="Įvesk apie įmonę"
-                      className="border-dark"
                       name="aboutSection"
                       defaultValue={company.aboutSection}
                       onChange={handleInputChange}
@@ -306,7 +264,6 @@ function CompanyProfile({ id }) {
                     <Form.Label className="fw-bold fs-5">El. paštas</Form.Label>
                     <Form.Control
                       type="text"
-                      className="border-dark"
                       defaultValue={company.email}
                       placeholder="Įvesk el. pašto adresą"
                       onChange={handleInputChange}
@@ -319,7 +276,6 @@ function CompanyProfile({ id }) {
                     </Form.Label>
                     <Form.Control
                       type="password"
-                      className="border-dark"
                       placeholder="Įvesk seną slaptažodį"
                       onChange={handleInputChange}
                       name="password"
@@ -331,7 +287,6 @@ function CompanyProfile({ id }) {
                     </Form.Label>
                     <Form.Control
                       type="password"
-                      className="border-dark"
                       placeholder="Įvesk naują slaptažodį"
                       onChange={handleInputChange}
                       name="newPassword"
@@ -345,7 +300,7 @@ function CompanyProfile({ id }) {
                       id="cities"
                       name="cities"
                       placeholder="Pasirink miestą"
-                      defaultValue={company.city}
+                      defaultInputValue={company.city}
                       onChange={handleLocationChange}
                       options={cities}
                       isInvalid={!!errors.city}
@@ -360,7 +315,6 @@ function CompanyProfile({ id }) {
                     </Form.Label>
                     <Form.Control
                       type="text"
-                      className="border-dark"
                       placeholder="Įvesk kompanijos adresą"
                       name="address"
                       defaultValue={company.address}
@@ -377,7 +331,6 @@ function CompanyProfile({ id }) {
                     </Form.Label>
                     <Form.Control
                       type="text"
-                      className="border-dark"
                       placeholder="Įvesk įmonės svetainę"
                       name="site"
                       defaultValue={company.site}
@@ -407,7 +360,7 @@ function CompanyProfile({ id }) {
                 <CreateJob />
               </div>
 
-              <p>{company.aboutSection}</p>
+              <p className="mt-3">{company.aboutSection}</p>
               <Row>
                 <Col md={8}>
                   <JobList
@@ -444,14 +397,22 @@ function CompanyProfile({ id }) {
                       )}
                     </Card.Header>
                     <div className="m-3">
-                      <Card.Title>{company.companyName}</Card.Title>
-                      <Card.Title>{company.companyCode}</Card.Title>
-
-                      <hr />
-                      <Card.Text className="m-0">{company.address}</Card.Text>
-                      <Card.Text className="m-0">{company.city}</Card.Text>
+                      <Card.Title className="text-center">
+                        {company.companyName}
+                      </Card.Title>
+                      <Card.Subtitle className="mt-3"></Card.Subtitle>
+                      <hr />{" "}
                       <Card.Text className="m-0">
-                        {company.created.slice(0, 10)}
+                        <TiBusinessCard className="me-2" />
+                        {company.companyCode}
+                      </Card.Text>
+                      <Card.Text className="m-0">
+                        <FaAddressCard className="me-2" />
+                        {company.address}
+                      </Card.Text>
+                      <Card.Text className="m-0">
+                        <SlLocationPin className="me-2" />
+                        {company.city}
                       </Card.Text>
                     </div>
                   </Card>
@@ -461,7 +422,9 @@ function CompanyProfile({ id }) {
                         <Card.Title> Įmonės svetainė: </Card.Title>
                       </Card.Header>
                       <Card.Body>
-                        <Card.Text>{company.site}</Card.Text>
+                        <Card.Text>
+                          <GoBrowser className="me-2" /> {company.site}
+                        </Card.Text>
                       </Card.Body>
                     </Card>
                   ) : (
@@ -472,9 +435,33 @@ function CompanyProfile({ id }) {
                       <Card.Title>Atsakingas asmuo:</Card.Title>
                     </Card.Header>
                     <Card.Body>
-                      <Card.Text>{company.contactPerson}</Card.Text>
-                      <Card.Text>{company.email}</Card.Text>
-                      <Card.Text>{company.phoneNumber}</Card.Text>
+                      <Card.Text>
+                        <BsPersonFill className="me-2" />
+                        {company.contactPerson}
+                      </Card.Text>
+                      <Card.Text>
+                        <GoMail className="me-2" /> {company.email}
+                      </Card.Text>
+                      <Card.Text>
+                        <BsPhone className="me-2" />{" "}
+                        {number.phoneNumber.includes("*") ? (
+                          <span
+                            style={{ cursor: "pointer" }}
+                            onClick={() =>
+                              handleUnhidePhone(company.phoneNumber)
+                            }
+                          >
+                            {number.phoneNumber}
+                          </span>
+                        ) : (
+                          <a
+                            href={`tel:${number.phoneNumber}`}
+                            style={{ textDecoration: "none" }}
+                          >
+                            {number.phoneNumber}
+                          </a>
+                        )}
+                      </Card.Text>
                     </Card.Body>
                   </Card>
                 </Col>

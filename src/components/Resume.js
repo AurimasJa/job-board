@@ -1,15 +1,10 @@
 import React, { useState, useEffect } from "react";
-import Footer from "./Footer";
-import Navham from "./Navham";
-import AnalyzedData from "./AnalysedData";
-import { Card } from "react-bootstrap";
 import { BsPhone } from "react-icons/bs";
 import { FaAddressCard, FaCity } from "react-icons/fa";
 
 function Resume(props) {
   const { education, degreeStrings } = props;
   const { forms, formValues } = props;
-  console.log(degreeStrings);
   return (
     <>
       <div

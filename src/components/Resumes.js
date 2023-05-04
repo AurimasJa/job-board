@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import authService from "../services/auth.service";
-import axios from "axios";
 import Resume from "./Resume";
 import { Button, Card, Col, Container, Modal, Row } from "react-bootstrap";
 import Navham from "./Navham";
@@ -15,8 +14,8 @@ import { GoMail } from "react-icons/go";
 import { useLocation, useNavigate } from "react-router-dom";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import DownloadResume from "./DownloadResume";
-import moment from "moment";
 import UpdateResume from "./UpdateResume";
+import resumesService from "../services/resumes.service";
 
 function Resumes() {
   const navigate = useNavigate();
@@ -35,18 +34,17 @@ function Resumes() {
     "Daktaro laipsnis",
     "Kita",
   ];
-  const getUserResumes = () => {
+  const fetchUserResumes = async (userId, headers) => {
+    const response = await resumesService.fetchAllUserResumes(userId, headers);
+    setResumes(response);
+  };
+  const getUserResumes = async () => {
     if (user) {
       const userId = user[0];
-      axios
-        .get("https://localhost:7045/api/resumes/user/" + userId)
-        .then((response) => {
-          setResumes(response.data);
-        })
-        .catch(function (error) {
-          console.log(error);
-          console.log(error.message);
-        });
+      const headers = {
+        Authorization: `Bearer ${user[3]}`,
+      };
+      fetchUserResumes(userId, headers);
     } else {
       console.log("Neprisijungęs");
     }
@@ -63,34 +61,26 @@ function Resumes() {
     const headers = {
       Authorization: `Bearer ${user[3]}`,
     };
-    const asd = await axios.put(
-      `https://localhost:7045/api/resumes/visibility/${resumeId}`,
-      {
-        isHidden: isHidden,
-      },
-      {
-        headers,
-      }
+    const response = await resumesService.updateResumeVisibility(
+      isHidden,
+      resumeId,
+      headers
     );
-    console.log(asd);
-    window.location.reload();
+
+    if (response.status === 200) window.location.reload();
   };
   const handleDeleteResume = async (resume) => {
     const headers = {
       Authorization: `Bearer ${user[3]}`,
     };
-    axios.delete(`https://localhost:7045/api/resumes/${resume.id}`, {
-      headers,
-    });
-    window.location.reload();
+
+    const response = await resumesService.delete(resume.id, headers);
+    if (response.status === 204) window.location.reload();
   };
   return (
     <>
       <Navham />
       <Container>
-        {/* {location.pathname === "/resume" || location.pathname === "user/resumes"
-          ? "Asd"
-          : "asdasddasd"} */}
         {(location.pathname === "/resume" && !selectedResume) ||
         selectedResume === null ? (
           <>
@@ -230,7 +220,13 @@ function Resumes() {
             <Col md={4}>
               {resumes.map((resume) => (
                 <>
-                  <Card className="mb-3 ">
+                  <Card
+                    className={
+                      selectedResume.id && selectedResume.id === resume.id
+                        ? "selected-resume mb-3"
+                        : "mb-3"
+                    }
+                  >
                     <Card.Header>
                       <div className="d-flex justify-content-between">
                         <Card.Title>{resume.fullName}</Card.Title>

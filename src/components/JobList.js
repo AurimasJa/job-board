@@ -1,9 +1,6 @@
 import React, { useEffect, useState } from "react";
 import CountUp from "react-countup";
 import "../style.css"; // import your CSS file
-import CreateJob from "./CreateJob";
-
-import axios from "axios";
 import {
   Button,
   Card,
@@ -33,6 +30,7 @@ import { GiReceiveMoney } from "react-icons/gi";
 import moment from "moment";
 import JobSearch from "./JobSearch";
 import authService from "../services/auth.service";
+import jobService from "../services/job.service";
 
 function JobList({ data, currentPage, totalPages }) {
   const itemsPerPage = 6;
@@ -51,13 +49,8 @@ function JobList({ data, currentPage, totalPages }) {
   const [sortBySalary, setSortBySalary] = useState(false);
   const [sortByDate, setSortByDate] = useState(false);
   const [sortByHidden, setSortByHidden] = useState(false);
-  const [showDeleteWarning, setShowDeleteWarning] = useState(false);
   const [selectedJob, setSelectedJob] = useState(null);
-  const handleShowDeleteWarningOn = (job) => {
-    setSelectedJob(job);
-  };
-  const handleCloseHiddenJobModal = () => setShowHiddenJobModal(false);
-  const handleCloseNotHiddenJobModal = () => setShowNotHiddenJobModal(false);
+
   const [selectedDate, setSelectedDate] = useState(null);
   const user = authService.getCurrentUser();
   const toSpecificJob = (job) => {
@@ -99,21 +92,16 @@ function JobList({ data, currentPage, totalPages }) {
     };
     var today = moment();
     var validityDate = moment(today).add(days, "days");
-    console.log(moment(validityDate).format("DD/MM/YYYY"));
     if (isHidden) {
       validityDate = moment();
     }
-    await axios.put(
-      `https://localhost:7045/api/job/validity/${jobId}`,
-      {
-        validityDate: validityDate,
-        isHidden: isHidden,
-      },
-      {
-        headers,
-      }
+    const response = await jobService.updateJobValidity(
+      validityDate,
+      isHidden,
+      jobId,
+      headers
     );
-    window.location.reload();
+    if (response.status === 200) window.location.reload();
   };
   const handleSortBySalary = () => {
     setSortBySalary(!sortBySalary);
@@ -134,7 +122,6 @@ function JobList({ data, currentPage, totalPages }) {
       const dateB = new Date(b.creationDate);
       return sortByDate ? dateB - dateA : dateA - dateB;
     });
-    console.log(sortedJobs);
     setJobs(sortedJobs);
     displayedData = jobs.slice(startIndex, endIndex);
   };
@@ -149,20 +136,16 @@ function JobList({ data, currentPage, totalPages }) {
         return sortByHidden ? -1 : 1;
       }
     });
-    console.log(sortedJobs);
     setJobs(sortedJobs);
     displayedData = jobs.slice(startIndex, endIndex);
   };
 
-  const handleShowDeleteWarningOff = () => setShowDeleteWarning(false);
   const handleDeleteJob = async (job) => {
     const headers = {
       Authorization: `Bearer ${user[3]}`,
     };
-    axios.delete(`https://localhost:7045/api/job/${job.id}`, {
-      headers,
-    });
-    window.location.reload();
+    const response = await jobService.delete(job.id, headers);
+    if (response.status === 204) window.location.reload();
   };
 
   const isDaySelected = !selectedDate;
@@ -175,7 +158,7 @@ function JobList({ data, currentPage, totalPages }) {
         <div className="me-2">
           <h3>Rikiuoti</h3>
           <Button className="me-2" onClick={handleSortBySalary}>
-            Pagal algą {sortBySalary ? "▲" : "▼"}
+            Pagal atlyginimą {sortBySalary ? "▲" : "▼"}
           </Button>
           <Button className="me-2" onClick={handleSortByDate}>
             Pagal datą {sortByDate ? "▲" : "▼"}
@@ -206,7 +189,7 @@ function JobList({ data, currentPage, totalPages }) {
               {job.id && (
                 <>
                   {location.pathname === "/profile" ||
-                  location.pathname === "/company/profile" ? (
+                  location.pathname.startsWith("/company/profile/") ? (
                     <Row key={job.id}>
                       <Col className="mb-2">
                         <Card
@@ -255,83 +238,90 @@ function JobList({ data, currentPage, totalPages }) {
                                       style={{ cursor: "pointer" }}
                                       onClick={() => setJobId(job.id)}
                                     />
+                                    {job && job.id === jobId && (
+                                      <Modal
+                                        show={showHiddenJobModal}
+                                        onHide={() => setJobId(null)}
+                                      >
+                                        <Modal.Header>
+                                          <Modal.Title>
+                                            Ar tikrai norite padaryti šį
+                                            skelbimą matomą?
+                                          </Modal.Title>
+                                        </Modal.Header>
 
-                                    <Modal
-                                      show={showHiddenJobModal}
-                                      onHide={handleCloseHiddenJobModal}
-                                    >
-                                      <Modal.Title>
-                                        <p>
-                                          Ar tikrai norite padaryti šį skelbimą
-                                          matomą?
-                                        </p>
-                                      </Modal.Title>
-                                      <Modal.Body>
-                                        <Form>
-                                          <FloatingLabel
-                                            controlId="selectDays"
-                                            label="Kiek laiko (dienomis) rodyti skelbimą"
-                                          >
-                                            <Form.Select
-                                              onChange={(event) =>
-                                                setSelectedDate(
-                                                  event.target.value
+                                        <Modal.Body>
+                                          <Form>
+                                            <FloatingLabel
+                                              controlId="selectDays"
+                                              label="Kiek laiko (dienomis) rodyti skelbimą"
+                                            >
+                                              <Form.Select
+                                                onChange={(event) =>
+                                                  setSelectedDate(
+                                                    event.target.value
+                                                  )
+                                                }
+                                              >
+                                                <option value="">
+                                                  Kiek laiko rodyti skelbimą?
+                                                </option>
+                                                <option value="1">1</option>
+                                                <option value="7">7</option>
+                                                <option value="14">14</option>
+                                                <option value="30">30</option>
+                                              </Form.Select>
+                                            </FloatingLabel>
+                                          </Form>
+                                          <div className="d-flex justify-content-end">
+                                            <Button
+                                              className="mt-3"
+                                              onClick={() =>
+                                                handleUpdateJobVisibility(
+                                                  selectedDate,
+                                                  !job.isHidden,
+                                                  jobId
                                                 )
                                               }
+                                              disabled={isDaySelected}
                                             >
-                                              <option value="">
-                                                Kiek laiko rodyti skelbimą?
-                                              </option>
-                                              <option value="1">1</option>
-                                              <option value="7">7</option>
-                                              <option value="14">14</option>
-                                              <option value="30">30</option>
-                                            </Form.Select>
-                                          </FloatingLabel>
-                                        </Form>
-                                        <Button
-                                          onClick={() =>
-                                            handleUpdateJobVisibility(
-                                              selectedDate,
-                                              !job.isHidden,
-                                              jobId
-                                            )
-                                          }
-                                          disabled={isDaySelected}
-                                        >
-                                          Atnaujinti
-                                        </Button>
-                                      </Modal.Body>
-                                    </Modal>
+                                              Atnaujinti
+                                            </Button>
+                                          </div>
+                                        </Modal.Body>
+                                      </Modal>
+                                    )}
                                   </div>
                                 </div>
                               ) : location.pathname.startsWith("/profile") &&
                                 !job.isHidden ? (
-                                <div className="me-3">
-                                  <div
-                                    onClick={() =>
-                                      setShowNotHiddenJobModal(true)
-                                    }
-                                    style={{ textAlign: "right" }}
-                                  >
-                                    <div>
-                                      <BsEyeFill
-                                        style={{ cursor: "pointer" }}
-                                        onClick={() => setJobId(job.id)}
-                                      />
-                                      <Modal
-                                        show={showNotHiddenJobModal}
-                                        onHide={handleCloseNotHiddenJobModal}
-                                      >
+                                <div
+                                  className="me-3"
+                                  onClick={() => setShowNotHiddenJobModal(true)}
+                                  style={{ textAlign: "right" }}
+                                >
+                                  <BsEyeFill
+                                    style={{ cursor: "pointer" }}
+                                    onClick={() => setJobId(job.id)}
+                                  />
+                                  {job && job.id === jobId && (
+                                    <Modal
+                                      show={showNotHiddenJobModal}
+                                      onHide={() => setJobId(null)}
+                                    >
+                                      <Modal.Header>
                                         <Modal.Title>
-                                          <p>
-                                            Ar tikrai norite padaryti šį
-                                            skelbimą nematomą? Skelbimas nebus
-                                            randamas skelbimų paieškoje
-                                          </p>
+                                          Ar tikrai norite padaryti šį skelbimą
+                                          nematomą?
                                         </Modal.Title>
-                                        <Modal.Body>
-                                          {console.log(job.id)}
+                                      </Modal.Header>
+
+                                      <Modal.Body>
+                                        <p>
+                                          Skelbimas nebus randamas skelbimų
+                                          paieškoje.
+                                        </p>
+                                        <div className="d-flex justify-content-end">
                                           <Button
                                             onClick={() =>
                                               handleUpdateJobVisibility(
@@ -343,10 +333,10 @@ function JobList({ data, currentPage, totalPages }) {
                                           >
                                             Atnaujinti
                                           </Button>
-                                        </Modal.Body>
-                                      </Modal>
-                                    </div>
-                                  </div>
+                                        </div>
+                                      </Modal.Body>
+                                    </Modal>
+                                  )}
                                 </div>
                               ) : (
                                 ""
@@ -378,18 +368,17 @@ function JobList({ data, currentPage, totalPages }) {
                                       show={true}
                                       onHide={() => setSelectedJob(null)}
                                     >
-                                      <Card.Header>
-                                        <Card.Title>
-                                          <p>
-                                            Ar tikrai norite ištrinti šį
-                                            skelbimą?
-                                          </p>
-                                        </Card.Title>
-                                      </Card.Header>
-                                      <Card.Body className="text-center">
-                                        <div>
-                                          <p>{job.title}</p>
-                                        </div>
+                                      <Modal.Header>
+                                        <Modal.Title>
+                                          Ar tikrai norite ištrinti šį skelbimą?
+                                        </Modal.Title>
+                                      </Modal.Header>
+
+                                      <Modal.Body>
+                                        <p>Skelbimas bus ištrintas:</p>
+                                        <p className="text-center">
+                                          {job.title}
+                                        </p>
                                         <div className="d-flex justify-content-end">
                                           <Button
                                             variant="danger"
@@ -398,7 +387,7 @@ function JobList({ data, currentPage, totalPages }) {
                                             Ištrinti
                                           </Button>
                                         </div>
-                                      </Card.Body>
+                                      </Modal.Body>
                                     </Modal>
                                   )}
                                 </>
@@ -419,7 +408,8 @@ function JobList({ data, currentPage, totalPages }) {
                             />
                             <div className="ms-3">
                               <Card.Subtitle className="mb-3 text-muted">
-                                <GiReceiveMoney /> Alga nuo: {job.salary}€
+                                <GiReceiveMoney /> Atlyginimas nuo: {job.salary}
+                                €
                               </Card.Subtitle>
                               {job.totalWorkHours ? (
                                 <p className="mb-1">
@@ -526,7 +516,8 @@ function JobList({ data, currentPage, totalPages }) {
                               />
                               <div className="ms-3">
                                 <Card.Subtitle className="mb-3 text-muted">
-                                  <GiReceiveMoney /> Alga nuo: {job.salary}€
+                                  <GiReceiveMoney /> Atlyginimas nuo:{" "}
+                                  {job.salary}€
                                 </Card.Subtitle>
                                 {job.totalWorkHours ? (
                                   <p className="mb-1">
@@ -571,6 +562,11 @@ function JobList({ data, currentPage, totalPages }) {
           ))}
         {jobs.length > 0 ? (
           ""
+        ) : location.pathname === "/profile" ||
+          location.pathname === "/company/profile" ? (
+          <h4 className="text-center">
+            Šiuo metu įmonė nėra sukūrus skelbimų.
+          </h4>
         ) : (
           <h4 className="text-center">
             Atsiprašome, tačiau pagal Jūsų užklausą darbo skelbimų neradome.

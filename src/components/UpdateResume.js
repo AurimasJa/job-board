@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { Alert, Button, Form, Modal } from "react-bootstrap";
 import authService from "../services/auth.service";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { Typeahead } from "react-bootstrap-typeahead";
 import cities from "../data/cities";
 import "../style.css"; // import your CSS file
 import { BsFillPencilFill } from "react-icons/bs";
+import resumesService from "../services/resumes.service";
 
 function UpdateResume({ resume }) {
   const navigate = useNavigate();
@@ -172,25 +172,12 @@ function UpdateResume({ resume }) {
       return acc;
     }, {});
     if (Object.keys(newErrors).length === 0) {
-      await axios.put(
-        `https://localhost:7045/api/resumes/${resume.id}`,
-        {
-          fullName: resumeUpdateData.fullName,
-          city: resumeUpdateData.city,
-          address: resumeUpdateData.address,
-          email: resumeUpdateData.email,
-          phoneNumber: resumeUpdateData.phoneNumber,
-          educations: resumeUpdateData.educations,
-          experiences: resumeUpdateData.experiences,
-          skills: resumeUpdateData.skills,
-          references: resumeUpdateData.references,
-          position: resumeUpdateData.position,
-          summary: resumeUpdateData.summary,
-        },
-        {
-          headers,
-        }
+      const response = await resumesService.updateResume(
+        resume.id,
+        resumeUpdateData,
+        headers
       );
+      if (response.status === 200) window.location.reload();
     } else {
       setErrorsLabel(true);
       setErrors(errors);
@@ -403,14 +390,14 @@ function UpdateResume({ resume }) {
                   <Form.Control
                     type="text"
                     placeholder="Mokymosi įstaigos pavadinimas"
-                    value={education?.school || ""}
+                    value={education.school || ""}
                     key={`school-${i}`}
                     onChange={(event) => {
-                      const newEducation = [...resumeUpdateData.education];
+                      const newEducation = [...resumeUpdateData.educations];
                       newEducation[i].school = event.target.value;
                       setResumeUpdateData({
                         ...resumeUpdateData,
-                        education: newEducation,
+                        educations: newEducation,
                       });
                     }}
                     isInvalid={
@@ -565,9 +552,9 @@ function UpdateResume({ resume }) {
             <Button variant="success" onClick={() => handleAddEducation()}>
               Pridėti
             </Button>
+            <h5 className="mt-3">Darbo patirtis: </h5>
             {resumeUpdateData.experiences.map((experience, i) => (
               <div key={experience.id}>
-                <h5>Darbo patirtis: </h5>
                 <Form.Group controlId={`company-${i}`}>
                   <Form.Label>Įmonė</Form.Label>
                   <Form.Control
@@ -714,6 +701,7 @@ function UpdateResume({ resume }) {
                 </Form.Group>
                 {i !== 0 && (
                   <Button
+                    className="mt-2 mb-2"
                     variant="danger"
                     onClick={() => handleRemoveExperience(experience.id)}
                   >
@@ -751,7 +739,7 @@ function UpdateResume({ resume }) {
             <Button variant="success" onClick={() => handleAddExperience()}>
               Pridėti
             </Button>
-            <Form.Group controlId="realSummaryId">
+            <Form.Group className="mt-2" controlId="realSummaryId">
               <Form.Label>Aprašymas apie Jus</Form.Label>
               <Form.Control
                 type="text"
@@ -805,7 +793,7 @@ function UpdateResume({ resume }) {
                 {errors.references}
               </Form.Control.Feedback>
             </Form.Group>
-            <h5>Jūsų savybės</h5>
+            <h5 className="mt-3">Jūsų savybės</h5>
             {resumeUpdateData.skills.map((skills, i) => (
               <div key={skills.id}>
                 <Form.Group controlId={`name-${i}`}>
@@ -837,6 +825,7 @@ function UpdateResume({ resume }) {
 
                 {i !== 0 && (
                   <Button
+                    className="mt-2 mb-2"
                     variant="danger"
                     onClick={() => handleRemoveSkills(skills.id)}
                   >
@@ -845,7 +834,11 @@ function UpdateResume({ resume }) {
                 )}
               </div>
             ))}
-            <Button variant="success" onClick={() => handleAddSkill()}>
+            <Button
+              variant="success"
+              className="mt-2"
+              onClick={() => handleAddSkill()}
+            >
               Pridėti
             </Button>
             <div className="d-flex justify-content-end">

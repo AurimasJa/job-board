@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from "react";
-import "../style.css"; // import your CSS file
+import "../style.css";
 import cities from "../data/cities";
 import "react-bootstrap-typeahead/css/Typeahead.css";
-
-import axios from "axios";
 import {
   Button,
   Col,
@@ -15,6 +13,8 @@ import {
 } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { Typeahead } from "react-bootstrap-typeahead";
+import { GiReceiveMoney } from "react-icons/gi";
+import jobService from "../services/job.service";
 
 function JobSearch() {
   const navigate = useNavigate();
@@ -41,7 +41,6 @@ function JobSearch() {
       isLocationMatch = job.city
         .toLowerCase()
         .includes(location[0].toLowerCase());
-      console.log(isLocationMatch);
     }
 
     const isOptionMatch =
@@ -73,27 +72,51 @@ function JobSearch() {
   const handleInputChange = (event) => {
     setSalary(event.target.value);
   };
+  const fetchJobs = async () => {
+    const jobs = await jobService.fetchJobs();
+    setJobs(jobs);
+  };
   useEffect(() => {
-    async function fetchJob() {
-      axios.get("https://localhost:7045/api/job/").then((resp) => {
-        const notHiddenJobs = resp.data.filter((job) => !job.isHidden);
-        setJobs(notHiddenJobs);
-      });
-    }
-
-    fetchJob();
+    fetchJobs();
   }, []);
 
+  const [isOtherSelected, setIsOtherSelected] = useState(false);
+  const [otherPosition, setOtherPosition] = useState("");
+  const [positionIndex, setPositionIndex] = useState(null);
+  const isExist = !positionIndex;
+  const isExistLength = positionIndex;
   const handlePositionChange = (e) => {
     const value = e.target.value;
     const checked = e.target.checked;
-    let newSelectedPositions = selectedPositions.slice();
-    if (checked) {
-      newSelectedPositions.push(value);
+    if (value === "Other") {
+      setIsOtherSelected(checked);
     } else {
-      newSelectedPositions = newSelectedPositions.filter((v) => v !== value);
+      let newSelectedPositions = selectedPositions.slice();
+      if (checked) {
+        newSelectedPositions.push(value);
+      } else {
+        newSelectedPositions = newSelectedPositions.filter((v) => v !== value);
+      }
+      setSelectedPositions(newSelectedPositions);
     }
+  };
+  const handleAdditionalPositionSearch = (e) => {
+    const value = e.target.value;
+    setOtherPosition(value);
+  };
+  const handleAddPosition = () => {
+    let newSelectedPositions = selectedPositions.slice();
+    if (otherPosition && otherPosition !== null) {
+      newSelectedPositions.push(otherPosition);
+      setSelectedPositions(newSelectedPositions);
+      setPositionIndex(newSelectedPositions.length);
+    }
+  };
+  const handleRemovePosition = () => {
+    let newSelectedPositions = selectedPositions.slice();
+    newSelectedPositions.splice(positionIndex - 1, 1);
     setSelectedPositions(newSelectedPositions);
+    setPositionIndex(null);
   };
 
   const toJobList = (filteredJobs) => {
@@ -175,6 +198,48 @@ function JobSearch() {
                           value="IT, telekomunikacija"
                           onChange={handlePositionChange}
                         />
+                        <Form.Check
+                          type="checkbox"
+                          label="Teisė"
+                          value="Teisė"
+                          onChange={handlePositionChange}
+                        />
+                        <Form.Check
+                          type="checkbox"
+                          label="Statyba"
+                          value="Statyba"
+                          onChange={handlePositionChange}
+                        />
+                        <Form.Check
+                          type="checkbox"
+                          label="Savanorystė"
+                          value="Savanorystė"
+                          onChange={handlePositionChange}
+                        />
+                        <Form.Check
+                          type="checkbox"
+                          label="Administravimas"
+                          value="Administravimas"
+                          onChange={handlePositionChange}
+                        />
+                        <Form.Check
+                          type="checkbox"
+                          label="Švietimas"
+                          value="Švietimas"
+                          onChange={handlePositionChange}
+                        />
+                        <Form.Check
+                          type="checkbox"
+                          label="Logistika"
+                          value="Logistika"
+                          onChange={handlePositionChange}
+                        />
+                        <Form.Check
+                          type="checkbox"
+                          label="Kita"
+                          value="Other"
+                          onChange={handlePositionChange}
+                        />
                       </Form>
                     </Dropdown.Menu>
                   </Dropdown>
@@ -187,6 +252,24 @@ function JobSearch() {
                     Ieškoti
                   </Button>
                 </Col>
+                {isOtherSelected && (
+                  <div>
+                    <input
+                      type="text"
+                      value={otherPosition}
+                      onChange={handleAdditionalPositionSearch}
+                    />
+                    <Button
+                      onClick={handleAddPosition}
+                      disabled={isExistLength}
+                    >
+                      Pridėti
+                    </Button>
+                    <Button onClick={handleRemovePosition} disabled={isExist}>
+                      Ištrinti
+                    </Button>
+                  </div>
+                )}
               </Row>
               <div
                 className={`show-more-button ${isPressed ? "pressed" : ""}`}
@@ -196,7 +279,10 @@ function JobSearch() {
               </div>
               {isPressed && (
                 <div>
-                  <p>Nuo: {salary}€</p>
+                  <p>
+                    <GiReceiveMoney className="me-2" /> Atlyginimas nuo:{" "}
+                    {salary}€
+                  </p>
                   <input
                     type="range"
                     max="20000"

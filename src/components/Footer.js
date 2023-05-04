@@ -4,8 +4,6 @@ import { Link } from "react-router-dom";
 function Footer() {
   return (
     <footer
-      //height: 100vh visur gal??
-      // className="bg-light py-3"
       className="mt-auto text-white-50 bg-dark py-3 mt-5"
       style={{
         bottom: 0,

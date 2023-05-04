@@ -16,13 +16,11 @@ class AuthService {
       .then((response) => {
         if (response.status === 200) {
           localStorage.setItem("user", JSON.stringify(response.data));
-          console.log(localStorage);
         }
         return "success";
       })
       .catch(function (error) {
         if (error.response) {
-          console.log(error);
           return error.response.data || {};
         } else {
           console.error(error);
@@ -50,13 +48,11 @@ class AuthService {
       .then((response) => {
         if (response.status === 200) {
           localStorage.setItem("user", JSON.stringify(response.data));
-          console.log(localStorage);
         }
         return "success";
       })
       .catch(function (error) {
         if (error.response) {
-          console.log(error.response);
           return error.response.data.errors || error.response.data || {};
         } else {
           console.error(error);
@@ -93,13 +89,11 @@ class AuthService {
       .then((response) => {
         if (response.status === 200) {
           localStorage.setItem("user", JSON.stringify(response.data));
-          console.log(localStorage);
         }
         return "success";
       })
       .catch(function (error) {
         if (error.response) {
-          console.log(error.response);
           return error.response.data.errors || error.response.data || {};
         } else {
           console.error(error);

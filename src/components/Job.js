@@ -1,4 +1,3 @@
-import axios from "axios";
 import React, { useState, useEffect } from "react";
 import {
   Container,
@@ -22,17 +21,21 @@ import {
   BsHeart,
   BsHeartFill,
   BsListTask,
+  BsPersonFill,
   BsPersonWorkspace,
+  BsPhone,
   BsTools,
 } from "react-icons/bs";
+import { BiTimer } from "react-icons/bi";
 import AuthService from "../services/auth.service";
 import { GiReceiveMoney } from "react-icons/gi";
 import { GrWorkshop } from "react-icons/gr";
-import { CiTimer } from "react-icons/ci";
 import { RxBackpack } from "react-icons/rx";
-import { FaAddressBook, FaAddressCard, FaCity } from "react-icons/fa";
+import { FaAddressCard } from "react-icons/fa";
 import { SlLocationPin } from "react-icons/sl";
 import UpdateJob from "./UpdateJob";
+import jobService from "../services/job.service";
+import jobresumesService from "../services/jobresumes.service";
 
 function Job() {
   const navigate = useNavigate();
@@ -46,69 +49,46 @@ function Job() {
   const [companyOffers, setCompanyOffers] = useState("");
   const [totalCandidateslength, setTotalCandidatesLength] = useState(0);
   const [selectedJobIds, setselectedJobIds] = useState([]);
-
-  const user = AuthService.getCurrentUser();
-  console.log(user);
-  const today = new Date();
-  async function fetchSimilarJobs() {
-    const response = await axios.get(
-      `https://localhost:7045/api/job/details?position=${selectedJob.position}&&city=${selectedJob.city}&&id=${location.state.id}`
-    );
-    setSimilarJobs(response.data);
+  const [number, setNumber] = useState({ phoneNumber: "+3706*******" });
+  function handleUnhidePhone(phoneNumber) {
+    setNumber({ phoneNumber: phoneNumber });
   }
-  useEffect(() => {
-    setSelectedJobId(location.state.id);
+  const user = AuthService.getCurrentUser();
+  const today = new Date();
+  const fetchSimilarJobs = async () => {
+    const similarJobs = await jobService.fetchSimilarJobs(
+      selectedJob.position,
+      selectedJob.city,
+      location.state.id
+    );
+    setSimilarJobs(similarJobs);
+  };
 
-    async function fetchJob() {
-      axios
-        .get("https://localhost:7045/api/job/" + location.state.id)
-        .then((resp) => {
-          setCompanyOffers(resp.data.companyOffers);
-          setDescription(resp.data.description);
-          const convertedCompanyOffers = resp.data.companyOffers.replace(
-            /<\/?\s*br\s*\/?>/gi,
-            "\n"
-          );
-          resp.data.companyOffers = convertedCompanyOffers
-            .split("\n")
-            .map((line, i) => (
-              <span key={i}>
-                {line}
-                <br />
-              </span>
-            ));
-          const convertedDescription = resp.data.description.replace(
-            /<\/?\s*br\s*\/?>/gi,
-            "\n"
-          );
-          resp.data.description = convertedDescription
-            .split("\n")
-            .map((line, i) => (
-              <span key={i}>
-                {line}
-                <br />
-              </span>
-            ));
-          setSelectedJob(resp.data);
-          setJobLoaded(true);
-        });
-    }
-    async function fetchTotalResumes() {
-      axios
-        .get("https://localhost:7045/api/jobsresumes/" + location.state.id)
-        .then((resp) => {
-          setTotalCandidatesLength(resp.data.length);
-        });
-    }
-    fetchJob();
-    fetchTotalResumes();
-  }, [location.state.id]);
-
+  const fetchJob = async () => {
+    const similarJobs = await jobService.fetchJob(location.state.id);
+    setSelectedJob(similarJobs.selectedJob);
+    setCompanyOffers(similarJobs.companyOffers);
+    setDescription(similarJobs.description);
+    setJobLoaded(true);
+  };
   useEffect(() => {
     if (jobLoaded) {
       fetchSimilarJobs();
     }
   }, [jobLoaded]);
+
+  useEffect(() => {
+    setSelectedJobId(location.state.id);
+    fetchJob();
+  }, [location.state.id]);
+
+  const fetchResumesCount = async (id) => {
+    const response = await jobresumesService.resumesCount(id);
+    setTotalCandidatesLength(response);
+  };
+  useEffect(() => {
+    fetchResumesCount(location.state.id);
+  }, [location.state.id]);
 
   const toCandidateList = (jobId) => {
     navigate("/jobs/candidates", {
@@ -119,7 +99,7 @@ function Job() {
   };
 
   const toCompanyProfile = (company) => {
-    navigate("/company/profile", {
+    navigate(`/company/profile/${company.id}`, {
       state: {
         company: company,
       },
@@ -127,7 +107,6 @@ function Job() {
   };
 
   const toSpecificJob = (job) => {
-    console.log(job);
     setJobLoaded(false);
     setSelectedJobId(job.id);
     navigate("/jobs/" + job.id, {
@@ -161,7 +140,7 @@ function Job() {
         <Container>
           {!selectedJob.company ? (
             ""
-          ) : (
+          ) : jobLoaded ? (
             <Row>
               <Col xs={12} md={8}>
                 <Row>
@@ -176,15 +155,17 @@ function Job() {
                         />
                         <div className="m-3">
                           <h4>{selectedJob.title}</h4>
-                          <p className="mb-1">
-                            <GiReceiveMoney /> Atlyginimas nuo:{" "}
+                          <Card.Text className="mb-2">
+                            <GiReceiveMoney className="me-2" /> Atlyginimas nuo:{" "}
                             {selectedJob.salary}€ iki {selectedJob.salaryUp}€
-                          </p>
+                          </Card.Text>
 
-                          <Card.Text>Miestas: {selectedJob.city}</Card.Text>
+                          <Card.Text>
+                            <SlLocationPin className="me-2" /> Miestas:{" "}
+                            {selectedJob.city}
+                          </Card.Text>
                         </div>
                         <div className="ms-auto m-3">
-                          {" "}
                           <OverlayTrigger
                             placement="top"
                             overlay={
@@ -201,7 +182,6 @@ function Job() {
                       </div>
                       <Card.Body>
                         <h5>Aprašymas:</h5>
-                        {console.log(selectedJob.description)}
                         <Card.Text>{selectedJob.description}</Card.Text>
                         <h5>Reikalavimai:</h5>
                         {selectedJob.requirements.map((requirement) => (
@@ -255,61 +235,80 @@ function Job() {
                     {selectedJob.company && (
                       <>
                         <p className="mb-1">
+                          <BsPersonFill className="me-2" />
                           {selectedJob.company.contactPerson}
-                        </p>{" "}
+                        </p>
                         <p className="mb-1">
-                          {selectedJob.company.phoneNumber}
+                          <BsPhone className="me-2" />
+                          {number.phoneNumber.includes("*") ? (
+                            <span
+                              style={{ cursor: "pointer" }}
+                              onClick={() =>
+                                handleUnhidePhone(
+                                  selectedJob.company.phoneNumber
+                                )
+                              }
+                            >
+                              {number.phoneNumber}
+                            </span>
+                          ) : (
+                            <a
+                              href={`tel:${number.phoneNumber}`}
+                              style={{ textDecoration: "none" }}
+                            >
+                              {number.phoneNumber}
+                            </a>
+                          )}
                         </p>
                       </>
                     )}
-                    {1 +
-                      Math.ceil(
-                        moment(selectedJob.validityDate, "YYYYMMDD").diff(
-                          moment(today, "YYYYMMDD"),
-                          "days"
-                        )
-                      ) <=
-                    0 ? (
+                    {moment(selectedJob.validityDate, "YYYYMMDD").diff(
+                      moment(today, "YYYYMMDD")
+                    ) <= 0 ? (
                       <Card.Text>Skelbimas nebegalioja</Card.Text>
                     ) : (
                       <Card.Text>
+                        <BiTimer className="me-2" />
                         Skelbimas dar galios:{" "}
-                        {1 +
-                          Math.ceil(
-                            moment(selectedJob.validityDate, "YYYYMMDD").diff(
-                              moment(today, "YYYYMMDD"),
-                              "days"
-                            )
-                          )}
+                        {Math.ceil(
+                          moment(selectedJob.validityDate, "YYYYMMDD").diff(
+                            moment(today, "YYYYMMDD"),
+                            "days"
+                          )
+                        )}
                         dienas
                       </Card.Text>
                     )}
                     <hr />
                     {/* <div className="d-flex "> */}
                     <Card.Text>
-                      <BsClock /> Darbo laikas:{" "}
+                      <BsClock className="me-2" /> Darbo laikas:{" "}
                       <span> {selectedJob.totalWorkHours}</span>
                     </Card.Text>
                     {/* </div> */}
                     <Card.Text>
-                      <BsPersonWorkspace /> Darbas iš namų:{" "}
+                      <BsPersonWorkspace className="me-2" /> Darbas iš namų:{" "}
                       {selectedJob.remoteWork ? "taip" : "ne"}
                     </Card.Text>
                     <Card.Text>
-                      <BsFillPeopleFill /> Atranka: {selectedJob.selection}
+                      <BsFillPeopleFill className="me-2" /> Atranka:{" "}
+                      {selectedJob.selection}
                     </Card.Text>
                     <Card.Text>
-                      <GrWorkshop /> Pozicija: {selectedJob.position}
+                      <GrWorkshop className="me-2" /> Pozicija:{" "}
+                      {selectedJob.position}
                     </Card.Text>
                     <Card.Text>
-                      <BsListTask /> Pageidaujamas darbuoto lygis:{" "}
+                      <BsListTask className="me-2" /> Pareigybių lygis:{" "}
                       {selectedJob.positionLevel}
                     </Card.Text>
                     <Card.Text>
-                      <SlLocationPin /> Miestas: {selectedJob.city}
+                      <SlLocationPin className="me-2" /> Miestas:{" "}
+                      {selectedJob.city}
                     </Card.Text>
                     <Card.Text>
-                      <FaAddressCard /> Adresas: {selectedJob.location}
+                      <FaAddressCard className="me-2" /> Adresas:{" "}
+                      {selectedJob.location}
                     </Card.Text>
                   </Card.Body>
                 </Card>
@@ -351,10 +350,14 @@ function Job() {
                       <BsHeartFill className="heart-fill" /> Įsimintas
                     </Button>
                   )}
-                  <ApplyToJob jobId={selectedJob.id} />
+                  {moment(selectedJob.validityDate, "YYYYMMDD").diff(
+                    moment(today, "YYYYMMDD")
+                  ) > 0 && <ApplyToJob jobId={selectedJob.id} />}
                 </div>
               </Col>
             </Row>
+          ) : (
+            ""
           )}
           {similarJobs.length > 0 && (
             <>
@@ -376,7 +379,8 @@ function Job() {
                                 {job.title}
                               </Card.Title>
                               <Card.Subtitle className="mb-3 text-muted">
-                                <GiReceiveMoney /> Alga nuo: {job.salary}€
+                                <GiReceiveMoney /> Atlyginimas nuo: {job.salary}
+                                €
                               </Card.Subtitle>
                               <div className="d-flex flex-column justify-content-center align-items-center">
                                 <div className="d-flex  ">

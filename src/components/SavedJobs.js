@@ -7,48 +7,29 @@ import { Container } from "react-bootstrap";
 import JobSearch from "./JobSearch";
 import { useLocation, useNavigate } from "react-router-dom";
 import { BsHeart } from "react-icons/bs";
+import jobService from "../services/job.service";
 
 function SavedJobs() {
   const [jobs, setJobs] = useState([]);
-  const [loaded, setLoaded] = useState(false);
-  const [data, setData] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
   const navigate = useNavigate();
   const location = useLocation();
+  const fetchSavedJobs = async () => {
+    const jobs = await jobService.fetchSavedJobs();
+    setJobs(jobs);
+  };
   useEffect(() => {
-    async function fetchJobs() {
-      const storedList = JSON.parse(localStorage.getItem("selectedJobIds"));
-      if (storedList && storedList.length > 0) {
-        const jobList = storedList.map((id) =>
-          axios.get(`https://localhost:7045/api/job/${id}`)
-        );
-        axios
-          .all(jobList)
-          .then((results) => {
-            const jobs = results.map((res) => res.data);
-            const notHiddenJobs = jobs.filter((job) => !job.isHidden);
-            setJobs(notHiddenJobs);
-          })
-          .catch((error) => {
-            console.error(error);
-          });
-        setLoaded(true);
-      }
-    }
-
-    fetchJobs();
+    fetchSavedJobs();
   }, []);
   useEffect(() => {
-    // Update current page based on query parameter
     const params = new URLSearchParams(location.search);
     const page = parseInt(params.get("page")) || 1;
     setCurrentPage(page);
   }, [location.search]);
 
   useEffect(() => {
-    // Update total pages based on data and items per page
     const itemsPerPage = 6;
     const totalItems = jobs.length;
     const totalPages = Math.ceil(totalItems / itemsPerPage);

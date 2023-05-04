@@ -1,23 +1,19 @@
 import { useEffect, useState } from "react";
 import { Button, Card, FloatingLabel, Form, Modal } from "react-bootstrap";
 import authService from "../services/auth.service";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { Typeahead } from "react-bootstrap-typeahead";
 import cities from "../data/cities";
 import "../style.css"; // import your CSS file
 import { BsFillPencilFill } from "react-icons/bs";
-import { createRoot } from "react-dom/client";
+import jobService from "../services/job.service";
 
 function UpdateJob({ job, desc, comp }) {
-  const navigate = useNavigate();
   const [show, setShow] = useState(false);
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
   const [errors, setErrors] = useState({});
   const [errorsLabel, setErrorsLabel] = useState(false);
-  console.log(job);
-  const [location, setLocation] = useState("");
   const [remoteWork, setRemoteWork] = useState(job.remoteWork);
   const user = authService.getCurrentUser();
   const [hasDescriptionChanged, setHasDescriptionChanged] = useState(false);
@@ -54,7 +50,6 @@ function UpdateJob({ job, desc, comp }) {
       ...jobUpdateData,
       city: temp,
     });
-    setLocation(temp);
   };
   const handleRemoveRequirement = (id) => {
     const requirements = jobUpdateData.requirements.filter(
@@ -71,32 +66,26 @@ function UpdateJob({ job, desc, comp }) {
     else if (values.title.length < 5 || values.title.length > 100)
       errors.title =
         "Pavadinimas per trumpas arba per ilgas, pavadinimo ilgis nuo 5 iki 100 simbolių";
-    // if (!values.description || !values.description === "")
-    //   errors.description = "Darbo aprašymas yra privalomas";
-    // else if (values.description.length < 30 || values.title.description > 1000)
-    //   errors.description =
-    //     "Aprašymas per trumpas arba per ilgas, pavadinimo ilgis nuo 30 iki 1000 simbolių";
     if (!values.position || !values.position === "")
       errors.position = "Pozicija yra privaloma";
     if (!values.positionLevel || !values.positionLevel === "")
       errors.positionLevel =
         "Pareigų lygis(Vadovas, Specialistas, (ne)kvalifikuotas darbuotojas) yra privalomas";
-    // if (!values.companyOffers || !values.companyOffers === "")
-    //   errors.companyOffers = "Įmonės pasiūlymas yra privalomas";
     if (!values.city || !values.city === "")
       errors.city = "Miestas yra privalomas";
     if (!values.location || !values.location === "")
       errors.location = "Adresas yra privalomas";
     if (!values.salary || !values.salary === "")
-      errors.salary = "Alga nuo yra privaloma";
+      errors.salary = "Atlyginimas nuo yra privaloma";
 
     let tempSalary = Number(values.salary);
     let tempSalaryUp = Number(values.salaryUp);
     if (!values.salaryUp || !values.salaryUp === "")
-      errors.salaryUp = "Alga iki yra privaloma";
+      errors.salaryUp = "Atlyginimas iki yra privaloma";
     else if (tempSalary > tempSalaryUp) {
-      errors.salary = "Alga iki negali būti mažesnė nei alga nuo";
-      errors.salaryUp = "Alga iki negali būti mažesnė nei alga nuo";
+      errors.salary = "Atlyginimas iki negali būti mažesnė nei atlyginimas nuo";
+      errors.salaryUp =
+        "Atlyginimas iki negali būti mažesnė nei atlyginimas nuo";
     }
     if (!values.totalWorkHours || !values.totalWorkHours === "")
       errors.totalWorkHours = "Etatą nurodyti yra privaloma";
@@ -130,38 +119,16 @@ function UpdateJob({ job, desc, comp }) {
       return acc;
     }, {});
     if (Object.keys(newErrors).length === 0) {
-      await axios
-        .put(
-          `https://localhost:7045/api/job/${job.id}`,
-          {
-            title: jobUpdateData.title,
-            description: hasDescriptionChanged
-              ? description.description
-              : description,
-            requirements: jobUpdateData.requirements,
-            position: jobUpdateData.position,
-            positionLevel: jobUpdateData.positionLevel,
-            companyOffers: hasCompanyOffersChanged
-              ? companyOffers.companyOffers
-              : companyOffers,
-            location: jobUpdateData.location,
-            city: jobUpdateData.city,
-            salary: Number(jobUpdateData.salary),
-            salaryUp: Number(jobUpdateData.salaryUp),
-            remoteWork: jobUpdateData.remoteWork,
-            totalWorkHours: jobUpdateData.totalWorkHours,
-            selection: jobUpdateData.selection,
-          },
-          {
-            headers,
-          }
-        )
-        .then((response) => {
-          window.location.reload();
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
+      const response = await jobService.updateJob(
+        job.id,
+        hasCompanyOffersChanged,
+        hasDescriptionChanged,
+        jobUpdateData,
+        description,
+        companyOffers,
+        headers
+      );
+      if (response.data === "Atnaujinta!") window.location.reload();
     } else {
       setErrorsLabel(true);
       setErrors(errors);
@@ -184,11 +151,6 @@ function UpdateJob({ job, desc, comp }) {
       }
     );
     setJobUpdateData({ ...jobUpdateData, requirements: updatedRequirements });
-  };
-  const handleInputChange = (event) => {
-    const { name, value } = event.target;
-
-    setCompanyOffers({ ...companyOffers, [name]: value });
   };
 
   return (
@@ -213,7 +175,7 @@ function UpdateJob({ job, desc, comp }) {
         keyboard={false}
       >
         <Modal.Header closeButton>
-          <Modal.Title>Naujo skelbimo kūrimas</Modal.Title>
+          <Modal.Title>Redaguoti darbo skelbimą</Modal.Title>
         </Modal.Header>
         {errorsLabel && <p style={{ color: "red" }}>Patikrinkite įvestis!</p>}
         <Modal.Body>
@@ -289,9 +251,6 @@ function UpdateJob({ job, desc, comp }) {
                 </Form.Control.Feedback>
               </FloatingLabel>
             </Form.Group>
-
-            {/* ###################################################################################################################################### */}
-
             <Form.Group controlId="selectCity">
               <Typeahead
                 className="d-flex justify-content-center mb-3"
@@ -308,7 +267,6 @@ function UpdateJob({ job, desc, comp }) {
                 {errors.city}
               </Form.Control.Feedback>
             </Form.Group>
-
             <Form.Group controlId="realPositionLevel">
               <FloatingLabel
                 controlId="positionInput"
@@ -414,7 +372,6 @@ function UpdateJob({ job, desc, comp }) {
                 </Button>
               </Card.Body>
             </Card>
-
             <Form.Group controlId="realLocation">
               <FloatingLabel
                 controlId="locationInput"
@@ -446,7 +403,7 @@ function UpdateJob({ job, desc, comp }) {
               >
                 <FloatingLabel
                   controlId="salaryInput"
-                  label="Alga (ant popieriaus) nuo"
+                  label="Atlyginimas (ant popieriaus) nuo"
                   className="mb-3"
                 >
                   <Form.Control
@@ -458,7 +415,7 @@ function UpdateJob({ job, desc, comp }) {
                         salary: event.target.value,
                       })
                     }
-                    placeholder="Alga"
+                    placeholder="Atlyginimas"
                     isInvalid={!!errors.salary}
                   />
                   <Form.Control.Feedback type="invalid">
@@ -469,7 +426,7 @@ function UpdateJob({ job, desc, comp }) {
               <Form.Group controlId="realSalaryUp" style={{ width: "50%" }}>
                 <FloatingLabel
                   controlId="salaryInputUp"
-                  label="Alga (ant popieriaus) iki"
+                  label="Atlyginimas (ant popieriaus) iki"
                   className="mb-3"
                 >
                   <Form.Control
@@ -481,7 +438,7 @@ function UpdateJob({ job, desc, comp }) {
                         salaryUp: event.target.value,
                       })
                     }
-                    placeholder="Alga"
+                    placeholder="Atlyginimas"
                     isInvalid={!!errors.salaryUp}
                   />
                   <Form.Control.Feedback type="invalid">
@@ -547,9 +504,11 @@ function UpdateJob({ job, desc, comp }) {
                 }}
               />
             </div>
-            <Button variant="success" type="submit">
-              Atnaujinti duomenis
-            </Button>
+            <div className="d-flex justify-content-end">
+              <Button variant="success" type="submit">
+                Atnaujinti duomenis
+              </Button>
+            </div>
           </Form>
         </Modal.Body>
       </Modal>

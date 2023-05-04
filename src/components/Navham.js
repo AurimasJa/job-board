@@ -35,26 +35,35 @@ function Navham() {
               <>
                 <Nav.Link onClick={handleShow}>Sukurk CV</Nav.Link>
                 <Modal show={show} onHide={handleClose} size="lg">
-                  <Modal.Title>
-                    Tu esi prisijungęs kaip <b>darbdavys</b>, norėdamas
-                    kandidatuoti į darbo skelbimą turi jungtis su savo asmenine
-                    paskyra.
-                  </Modal.Title>
-                  <Button>
-                    <Login textColorBlack="b" />
-                  </Button>
+                  <Modal.Header closeButton>
+                    <Modal.Title>
+                      Tu esi prisijungęs kaip <b>darbdavys</b>, norėdamas
+                      kandidatuoti į darbo skelbimą turi jungtis su savo
+                      asmenine paskyra.
+                    </Modal.Title>
+                  </Modal.Header>
+                  <Modal.Body>
+                    <Button>
+                      <Login textColorBlack="b" />
+                    </Button>
+                  </Modal.Body>
                 </Modal>
               </>
             ) : (
               <>
                 <Nav.Link onClick={handleShow}>Sukurk CV</Nav.Link>
                 <Modal show={show} onHide={handleClose} size="lg">
-                  <Modal.Title>
-                    Norint sukurti CV reikia prisijungti!
-                  </Modal.Title>
-                  <Button>
-                    <Login textColorBlack="b" />
-                  </Button>
+                  {" "}
+                  <Modal.Header closeButton>
+                    <Modal.Title>
+                      Norint sukurti CV reikia prisijungti!
+                    </Modal.Title>{" "}
+                  </Modal.Header>
+                  <Modal.Body>
+                    <Button>
+                      <Login textColorBlack="b" />
+                    </Button>
+                  </Modal.Body>
                 </Modal>
               </>
             )}

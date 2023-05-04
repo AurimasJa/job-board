@@ -66,16 +66,6 @@ function Calculatesalary() {
   };
   return (
     <>
-      {/* <div
-        className={`show-more-button ${isPressed ? "pressed" : ""}, mb-1`}
-        onClick={() => {
-          handleShowMoreFilters();
-          handleClick();
-        }}
-      >
-        Daugiau pasirinkimų<span className="arrow"></span>
-      </div> */}
-
       <Card>
         <Card.Header>
           <Card.Title className="m-1 mb-3">
@@ -95,7 +85,11 @@ function Calculatesalary() {
           />
           <div className="d-flex justify-content-end ">
             <div className="">
-              <Button type="submit" className="mt-3">
+              <Button
+                data-testid="calculateButton"
+                type="submit"
+                className="mt-3"
+              >
                 Skaičiuoti
               </Button>
             </div>
@@ -105,7 +99,8 @@ function Calculatesalary() {
           <div className="p-2">
             {(inputValue || inputValue == 0) && (
               <p className="d-flex justify-content-between ">
-                Atlyginimas ant popieriaus: <span>{inputValue}€</span>
+                Atlyginimas ant popieriaus:{" "}
+                <span data-testid="inputValue">{inputValue}€</span>
               </p>
             )}
             <hr />
@@ -136,7 +131,8 @@ function Calculatesalary() {
             <hr />
             {(result || result == 0) && (
               <p className="d-flex justify-content-between ">
-                Atlyginimas į rankas: <span>{result.toFixed(2)}€</span>
+                Atlyginimas į rankas:{" "}
+                <span data-testid="result">{result.toFixed(2)}€</span>
               </p>
             )}
             <hr />

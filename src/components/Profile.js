@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Footer from "./Footer";
 import Navham from "./Navham";
-import axios from "axios";
 import {
   Card,
   Col,
@@ -12,14 +11,14 @@ import {
   Row,
   Tooltip,
 } from "react-bootstrap";
-import { useNavigate } from "react-router-dom";
+import "../style.css";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "react-bootstrap";
 import Spinner from "react-bootstrap/Spinner";
 import {
   BsFillPencilFill,
   BsFillQuestionCircleFill,
   BsFillSquareFill,
-  BsQuestionCircleFill,
 } from "react-icons/bs";
 import moment from "moment";
 import JobSearch from "./JobSearch";
@@ -33,25 +32,33 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import resumesService from "../services/resumes.service";
+import usersService from "../services/users.service";
+import companiesresumesService from "../services/companiesresumes.service";
 
 function Profile() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [resumes, setResumes] = useState([]);
   const [resumesLength, setResumesLength] = useState(null);
   const [userData, setUserData] = useState(null);
   const [companiesReview, setCompaniesReview] = useState(null);
   const [jobApplied, setJobApplied] = useState(null);
+  const [showAppliedStatus, setShowAppliedStatus] = useState(null);
   const user = AuthService.getCurrentUser();
   const [show, setShow] = useState(false);
   const [activeApplyToJobButton, setActiveApplyToJobButton] = useState(true);
   const [activActiveFoundButton, setActiveFoundButton] = useState(false);
-
-  const [weeklyData, setWeeklyData] = useState([]);
   const [weeklyDataSearch, setWeeklyDataSearch] = useState([]);
   const [totalWeeklyDataCount, setTotalWeeklyDataCount] = useState(0);
   const [totalWeeklyDataSearchCount, setTotalWeeklyDataSearchCount] =
     useState(0);
 
+  useEffect(() => {
+    if (location.state?.status === "success") {
+      setShowAppliedStatus("Sėkmingai kandidatavai į darbo skelbimą.");
+    }
+  }, [location.state]);
   const handleShowFound = () => {
     setActiveApplyToJobButton(false);
     setActiveFoundButton(true);
@@ -79,37 +86,12 @@ function Profile() {
     const headers = {
       Authorization: `Bearer ${user[3]}`,
     };
-    const checkForErrors = await axios
-      .put(
-        `https://localhost:7045/api/users/${userData.id}`,
-        {
-          name: userDataUpdate.name,
-          surname: userDataUpdate.surname,
-          email: userDataUpdate.email,
-          password: userDataUpdate.password,
-          newPassword: userDataUpdate.newPassword,
-          dateOfBirth: userDataUpdate.dateOfBirth,
-        },
-        {
-          headers,
-        }
-      )
-      .then((response) => {
-        localStorage.setItem("user", JSON.stringify(response.data));
-        console.log(response);
-        return "success";
-      })
-      .catch(function (error) {
-        if (error.response) {
-          console.log(error);
-          console.log(error.response);
-          console.log(error.response.data);
-          console.log(error.response.data.errors);
-          return error.response.data;
-        } else {
-          console.error(error);
-        }
-      });
+    const checkForErrors = await usersService.updateUserData(
+      userData.id,
+      userDataUpdate,
+      headers
+    );
+
     if (checkForErrors === "success") {
       const timer = setTimeout(() => {
         window.location.reload();
@@ -125,6 +107,17 @@ function Profile() {
 
     setUserDataUpdate({ ...userDataUpdate, [name]: value });
   };
+  const fetchUserResumes = async (userId, headers) => {
+    const response = await resumesService.fetchUserResumes(userId, headers);
+    setResumes(response);
+    setResumesLength(response.length);
+  };
+  const getFullUserData = async (id) => {
+    const response = await usersService.getUser(id);
+    setUserData(response);
+    setUserDataUpdate(response);
+  };
+
   useEffect(() => {
     if (!user && !user[1]) {
       navigate("/");
@@ -134,74 +127,38 @@ function Profile() {
       user[1] &&
       (user[1].includes("Darbuotojas") || user[1].includes("Administratorius"))
     ) {
-      const getUserResumes = () => {
+      const getUserResumes = async () => {
         if (user) {
-          axios
-            .get("https://localhost:7045/api/resumes/user/" + user[0])
-            .then((response) => {
-              if (response.data) {
-                setResumes(response.data);
-                setResumesLength(response.data.length);
-              }
-            })
-            .catch(function (error) {
-              console.log(error);
-              console.log(error.message);
-            });
+          const headers = {
+            Authorization: `Bearer ${user[3]}`,
+          };
+
+          fetchUserResumes(user[0], headers);
         } else {
           console.log("Neprisijungęs");
         }
       };
-      const getUserData = () => {
+      const getUserData = async () => {
         if (user) {
-          axios
-            .get("https://localhost:7045/api/users/" + user[0])
-            .then((response) => {
-              console.log(response.data);
-              setUserData(response.data);
-              setUserDataUpdate(response.data);
-            })
-            .catch(function (error) {
-              console.log(error);
-              console.log(error.message);
-            });
+          getFullUserData(user[0]);
         } else {
           console.log("Neprisijungęs");
         }
       };
 
-      const getCvReviewedByCompanies = () => {
+      const getCvReviewedByCompanies = async () => {
         if (user) {
-          axios
-            .get(
-              "https://localhost:7045/api/companiesresume/companies/" + user[0]
-            )
-            .then((response) => {
-              const responseToArray = Object.values(response.data);
-              setCompaniesReview(responseToArray);
-              console.log(responseToArray);
-            })
-            .catch(function (error) {
-              console.log(error);
-              console.log(error.message);
-            });
+          const respose =
+            await companiesresumesService.getResumesViewedByCompanies(user[0]);
+          setCompaniesReview(respose);
         } else {
           console.log("Neprisijungęs");
         }
       };
-      const getYourJobApplies = () => {
+      const getYourJobApplies = async () => {
         if (user) {
-          axios
-            .get("https://localhost:7045/api/users/applied/job/" + user[0])
-            .then((response) => {
-              const responseToArray = Object.values(response.data);
-              setJobApplied(responseToArray);
-              console.log(responseToArray);
-            })
-            .catch(function (error) {
-              console.log(error);
-              console.log(error.message);
-            });
+          const respose = await usersService.getUserJobApplies(user[0]);
+          setJobApplied(respose);
         } else {
           console.log("Neprisijungęs");
         }
@@ -216,8 +173,7 @@ function Profile() {
   }, []);
 
   const toCompanyProfile = (company) => {
-    console.log(company);
-    navigate("/company/profile", {
+    navigate(`/company/profile/${company.id}`, {
       state: {
         company: company,
       },
@@ -234,56 +190,50 @@ function Profile() {
     window.open(`/view/resume?resumeId=${resumeId}`, "_blank");
   };
 
-  useEffect(
-    () => {
-      const getWeeklySearch = (data, info) => {
-        const fiveWeeksAgo = moment().subtract(4, "weeks");
-        const weeks = Array.from({ length: 4 }, (_, i) =>
-          moment(fiveWeeksAgo).add(i, "weeks").format("YYYY-MM-DD")
-        );
-        const weeklyData = weeks.map((week) => ({
-          week,
-          rado: data.filter(
-            (item) =>
-              moment(item.reviewDate).isSameOrAfter(week, "day") &&
-              moment(item.reviewDate).isBefore(
-                moment(week).add(7, "days"),
-                "day"
-              )
-          ).length,
-          kandidatavai: info.filter(
-            (item) =>
-              moment(item.creationDate).isSameOrAfter(week, "day") &&
-              moment(item.creationDate).isBefore(
-                moment(week).add(7, "days"),
-                "day"
-              )
-          ).length,
-        }));
-        return weeklyData;
-      };
+  useEffect(() => {
+    const getWeeklySearch = (data, info) => {
+      const weekToStart = moment().startOf("week");
+      const lastFourWeeks = moment(weekToStart).subtract(3, "weeks");
+      const weeks = Array.from({ length: 4 }, (_, i) =>
+        moment(lastFourWeeks).add(i, "weeks").format("YYYY-MM-DD")
+      );
+      const weeklyData = weeks.map((week) => ({
+        week,
+        rado: data.filter(
+          (item) =>
+            moment(item.reviewDate).isSameOrAfter(week, "day") &&
+            moment(item.reviewDate).isBefore(moment(week).add(7, "days"), "day")
+        ).length,
+        kandidatavai: info.filter(
+          (item) =>
+            moment(item.creationDate).isSameOrAfter(week, "day") &&
+            moment(item.creationDate).isBefore(
+              moment(week).add(7, "days"),
+              "day"
+            )
+        ).length,
+      }));
+      return weeklyData;
+    };
 
-      if (companiesReview && jobApplied) {
-        const data = getWeeklySearch(companiesReview, jobApplied);
-        setWeeklyDataSearch(data);
+    if (companiesReview && jobApplied) {
+      const data = getWeeklySearch(companiesReview, jobApplied);
+      setWeeklyDataSearch(data);
 
-        setTotalWeeklyDataCount(
-          weeklyDataSearch.reduce((count, currentValue) => {
-            return count + currentValue.rado;
-          }, 0)
-        );
+      setTotalWeeklyDataCount(
+        data.reduce((count, currentValue) => {
+          return count + currentValue.kandidatavai;
+        }, 0)
+      );
 
-        setTotalWeeklyDataSearchCount(
-          weeklyDataSearch.reduce((count, currentValue) => {
-            return count + currentValue.kandidatavai;
-          }, 0)
-        );
-      }
-    },
-    [jobApplied],
-    [companiesReview]
-  );
-  console.log(weeklyData);
+      setTotalWeeklyDataSearchCount(
+        data.reduce((count, currentValue) => {
+          return count + currentValue.rado;
+        }, 0)
+      );
+    }
+  }, [jobApplied, companiesReview]);
+
   return (
     <>
       {user && user[1] && user[1].includes("Darbdavys") ? (
@@ -293,13 +243,21 @@ function Profile() {
           <div>
             <Navham />
             <JobSearch />
-
-            <h4 className="mb-3 text-center">Tavo profilis</h4>
-            {!resumesLength ? (
-              <Spinner animation="grow" />
-            ) : (
-              <Container>
+            <Container>
+              <h4 className="mb-3 text-center">Tavo profilis</h4>
+              {!resumesLength ? (
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+                  <Spinner animation="grow" />
+                </div>
+              ) : (
                 <Row>
+                  {showAppliedStatus ? <h4>{showAppliedStatus}</h4> : ""}
                   {userData && (
                     <Modal show={show} onHide={handleClose}>
                       <Modal.Header closeButton>
@@ -434,7 +392,15 @@ function Profile() {
                   )}
                   <Col sm={4}>
                     {!userData ? (
-                      <Spinner animation="grow" />
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "center",
+                          alignItems: "center",
+                        }}
+                      >
+                        <Spinner animation="grow" />
+                      </div>
                     ) : (
                       <Card className="mb-4">
                         <Card.Header className="d-flex align-items-start">
@@ -551,7 +517,7 @@ function Profile() {
                         )}
                         <p>
                           Iš viso kanditavai:{" "}
-                          {jobApplied && totalWeeklyDataCount} kartų{" "}
+                          {jobApplied && totalWeeklyDataCount} kartus{" "}
                           <BsFillSquareFill style={{ color: "#8884d8" }} />
                         </p>
                         <p>
@@ -576,7 +542,6 @@ function Profile() {
                       </Card.Header>
                       {activeApplyToJobButton && (
                         <Card.Body>
-                          {console.log(jobApplied)}
                           {jobApplied &&
                             jobApplied.map((applied) => (
                               <div key={jobApplied.id}>
@@ -655,7 +620,7 @@ function Profile() {
                         <Card.Body>
                           {companiesReview &&
                             companiesReview.map((review) => (
-                              <div key={review.id}>
+                              <div key={companiesReview.id}>
                                 <p>
                                   {moment(review.reviewDate).format(
                                     "YYYY-MM-DD"
@@ -684,8 +649,8 @@ function Profile() {
                     </Card>
                   </Col>
                 </Row>
-              </Container>
-            )}
+              )}
+            </Container>
           </div>
           <Footer />
         </>

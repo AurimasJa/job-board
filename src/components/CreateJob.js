@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import { Button, Card, FloatingLabel, Form, Modal } from "react-bootstrap";
+import { Button, FloatingLabel, Form, Modal } from "react-bootstrap";
 import authService from "../services/auth.service";
-import axios from "axios";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Typeahead } from "react-bootstrap-typeahead";
 import cities from "../data/cities";
 import "../style.css"; // import your CSS file
+import jobService from "../services/job.service";
 
 function JobCreate(props) {
   const navigate = useNavigate();
@@ -43,15 +43,16 @@ function JobCreate(props) {
     if (!values.location || !values.location === "")
       errors.location = "Adresas yra privalomas";
     if (!values.salary || !values.salary === "")
-      errors.salary = "Alga nuo yra privaloma";
+      errors.salary = "Atlyginimas nuo yra privaloma";
 
     let tempSalary = Number(values.salary);
     let tempSalaryUp = Number(values.salaryUp);
     if (!values.salaryUp || !values.salaryUp === "")
-      errors.salaryUp = "Alga iki yra privaloma";
+      errors.salaryUp = "Atlyginimas iki yra privaloma";
     else if (tempSalary > tempSalaryUp) {
-      errors.salary = "Alga iki negali būti mažesnė nei alga nuo";
-      errors.salaryUp = "Alga iki negali būti mažesnė nei alga nuo";
+      errors.salary = "Atlyginimas iki negali būti mažesnė nei atlyginimas nuo";
+      errors.salaryUp =
+        "Atlyginimas iki negali būti mažesnė nei atlyginimas nuo";
     }
     if (!values.totalWorkHours || !values.totalWorkHours === "")
       errors.totalWorkHours = "Etatą nurodyti yra privaloma";
@@ -100,7 +101,6 @@ function JobCreate(props) {
       Authorization: `Bearer ${user[3]}`,
     };
     const errors = validateJobCreate(jobCreationData);
-    console.log(jobCreationData);
     setErrors(errors);
     const newErrors = Object.keys(errors).reduce((acc, key) => {
       const value = errors[key];
@@ -112,43 +112,17 @@ function JobCreate(props) {
     }, {});
 
     if (Object.keys(newErrors).length === 0) {
-      axios
-        .post(
-          "https://localhost:7045/api/job",
-          {
-            title: jobCreationData.title,
-            description: jobCreationData.description,
-            requirements: jobCreationData.requirements,
-            position: jobCreationData.position,
-            positionLevel: jobCreationData.positionLevel,
-            companyOffers: jobCreationData.companyOffers,
-            location: jobCreationData.location,
-            city: jobCreationData.city,
-            salary: Number(jobCreationData.salary),
-            salaryUp: Number(jobCreationData.salaryUp),
-            remoteWork: jobCreationData.remoteWork,
-            totalWorkHours: jobCreationData.totalWorkHours,
-            selection: jobCreationData.selection,
-          },
-          { headers }
-        )
-        .then((response) => {
-          console.log(response);
-          console.log(response.data);
+      const jobId = await jobService.createJob(jobCreationData, headers);
 
-          const timer = setTimeout(() => {
-            navigate("/jobs/" + response.data.id, {
-              state: {
-                id: response.data.id,
-              },
-            });
-          }, 500);
-          return () => clearTimeout(timer);
-        })
-        .catch(function (error) {
-          console.log(error);
-          console.log(error.message);
+      const timer = setTimeout(() => {
+        navigate("/jobs/" + jobId, {
+          state: {
+            id: jobId,
+          },
         });
+      }, 500);
+
+      return () => clearTimeout(timer);
     }
   };
   useEffect(() => {
@@ -287,7 +261,7 @@ function JobCreate(props) {
             <Form.Group controlId="realPositionLevel">
               <FloatingLabel
                 controlId="positionInput"
-                label="Pareigų lygis"
+                label="Pareigybių lygis"
                 className="mb-3 mt-3"
               >
                 <Form.Control
@@ -329,67 +303,65 @@ function JobCreate(props) {
                 </Form.Control.Feedback>
               </FloatingLabel>
             </Form.Group>
-            <Card className="mb-3">
-              <Card.Header className="mb-3 fs-5">Reikalavimai:</Card.Header>
-              {jobCreationData.requirements.map((requirement, i) => (
-                <div key={i} className="mb-3">
-                  <Form.Group controlId={`name-${i}`}>
-                    <FloatingLabel
-                      controlId={`requirementsInput-${i}`}
-                      label="Reikalavimas"
-                      className="mb-3"
-                    >
-                      <Form.Control
-                        type="text"
-                        placeholder="pvz.: Gerai išmanyti PHP, Darbo patirtis su PHP bent 3 metai"
-                        value={requirement.name}
-                        onChange={(event) => {
-                          const newRequirement = [
-                            ...jobCreationData.requirements,
-                          ];
-                          newRequirement[i].name = event.target.value;
-                          setJobCreationData({
-                            ...jobCreationData,
-                            requirements: newRequirement,
-                          });
-                        }}
-                        isInvalid={
-                          !!(
-                            errors.requirements &&
-                            errors.requirements[i] &&
-                            errors.requirements[i].name
-                          )
-                        }
-                      />{" "}
-                      <Form.Control.Feedback type="invalid">
-                        {errors.requirements &&
+            <h5>Reikalavimai:</h5>
+            {jobCreationData.requirements.map((requirement, i) => (
+              <div key={i} className="mb-3">
+                <Form.Group controlId={`name-${i}`}>
+                  <FloatingLabel
+                    controlId={`requirementsInput-${i}`}
+                    label="Reikalavimas"
+                    className="mb-3"
+                  >
+                    <Form.Control
+                      as="textarea"
+                      style={{ height: "100px" }}
+                      placeholder="pvz.: Gerai išmanyti PHP, Darbo patirtis su PHP bent 3 metai"
+                      value={requirement.name}
+                      onChange={(event) => {
+                        const newRequirement = [
+                          ...jobCreationData.requirements,
+                        ];
+                        newRequirement[i].name = event.target.value;
+                        setJobCreationData({
+                          ...jobCreationData,
+                          requirements: newRequirement,
+                        });
+                      }}
+                      isInvalid={
+                        !!(
+                          errors.requirements &&
                           errors.requirements[i] &&
-                          errors.requirements[i].name}
-                      </Form.Control.Feedback>
-                    </FloatingLabel>
-                  </Form.Group>
+                          errors.requirements[i].name
+                        )
+                      }
+                    />{" "}
+                    <Form.Control.Feedback type="invalid">
+                      {errors.requirements &&
+                        errors.requirements[i] &&
+                        errors.requirements[i].name}
+                    </Form.Control.Feedback>
+                  </FloatingLabel>
+                </Form.Group>
 
-                  {i !== 0 && (
-                    <Button
-                      className="ms-3"
-                      variant="danger"
-                      onClick={() => handleRemoveRequirement(i)}
-                    >
-                      Pašalinti
-                    </Button>
-                  )}
-                </div>
-              ))}
-              <div>
-                <Button
-                  className="mb-3 ms-3"
-                  variant="success"
-                  onClick={() => handleAddRequirement()}
-                >
-                  Pridėti
-                </Button>
+                {i !== 0 && (
+                  <Button
+                    variant="danger"
+                    onClick={() => handleRemoveRequirement(i)}
+                  >
+                    Pašalinti
+                  </Button>
+                )}
               </div>
-            </Card>
+            ))}
+            <div>
+              <Button
+                className="mb-3"
+                variant="success"
+                onClick={() => handleAddRequirement()}
+              >
+                Pridėti
+              </Button>
+            </div>
 
             <Form.Group controlId="realLocation">
               <FloatingLabel
@@ -421,7 +393,7 @@ function JobCreate(props) {
               >
                 <FloatingLabel
                   controlId="salaryInput"
-                  label="Alga (ant popieriaus) nuo"
+                  label="Atlyginimas (ant popieriaus) nuo"
                   className="mb-3"
                 >
                   <Form.Control
@@ -432,7 +404,7 @@ function JobCreate(props) {
                         salary: event.target.value,
                       })
                     }
-                    placeholder="Alga"
+                    placeholder="Atlyginimas"
                     isInvalid={!!errors.salary}
                   />
                   <Form.Control.Feedback type="invalid">
@@ -443,7 +415,7 @@ function JobCreate(props) {
               <Form.Group controlId="realSalaryUp" style={{ width: "50%" }}>
                 <FloatingLabel
                   controlId="salaryInputUp"
-                  label="Alga (ant popieriaus) iki"
+                  label="Atlyginimas (ant popieriaus) iki"
                   className="mb-3"
                 >
                   <Form.Control
@@ -454,7 +426,7 @@ function JobCreate(props) {
                         salaryUp: event.target.value,
                       })
                     }
-                    placeholder="Alga"
+                    placeholder="Atlyginimas"
                     isInvalid={!!errors.salaryUp}
                   />
                   <Form.Control.Feedback type="invalid">
@@ -518,9 +490,11 @@ function JobCreate(props) {
                 }}
               />
             </div>
-            <Button variant="success" type="submit">
-              Atnaujinti duomenis
-            </Button>
+            <div className="d-flex justify-content-end">
+              <Button variant="success" type="submit">
+                Įdėti skelbimą
+              </Button>
+            </div>
           </Form>
         </Modal.Body>
       </Modal>

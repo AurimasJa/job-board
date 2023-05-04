@@ -1,4 +1,3 @@
-import axios from "axios";
 import React, { useEffect, useState } from "react";
 import {
   Container,
@@ -16,16 +15,10 @@ import Navham from "./Navham";
 import Resume from "./Resume";
 import { useNavigate } from "react-router-dom";
 import cities from "../data/cities";
-import {
-  Document,
-  PDFDownloadLink,
-  PDFViewer,
-  Page,
-  Text,
-} from "@react-pdf/renderer";
-import DownloadResume from "./DownloadResume";
+
 import authService from "../services/auth.service";
 import { Typeahead } from "react-bootstrap-typeahead";
+import resumesService from "../services/resumes.service";
 
 function CreateResume() {
   const [activeStep, setActiveStep] = useState(1);
@@ -198,7 +191,7 @@ function CreateResume() {
 
     return errors;
   };
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
     const user = JSON.parse(localStorage.getItem("user"));
@@ -216,33 +209,8 @@ function CreateResume() {
       return acc;
     }, {});
     if (Object.keys(newErrors).length === 0) {
-      axios
-        .post(
-          "https://localhost:7045/api/resumes",
-          {
-            fullName: formValues.fullName,
-            city: formValues.city,
-            address: formValues.address,
-            email: formValues.email,
-            phoneNumber: formValues.phoneNumber,
-            education: formValues.educations,
-            experience: formValues.experiences,
-            skills: formValues.skills,
-            references: formValues.references,
-            position: formValues.position,
-            summary: formValues.summary,
-          },
-          { headers }
-        )
-        .then((response) => {
-          console.log(response);
-          console.log(response.data);
-          navigate("/resume");
-        })
-        .catch(function (error) {
-          console.log(error);
-          console.log(error.message);
-        });
+      const response = await resumesService.createResume(formValues, headers);
+      if (response.status === 201) navigate("/resume");
     } else {
       setErrorsLabel(true);
       setErrors(errors);
@@ -254,14 +222,6 @@ function CreateResume() {
     { label: "Darbo patirtis" },
     { label: "Apibendrinimas" },
   ];
-
-  const handleChange = (e) => {
-    const { fullName, value } = e.target;
-    setFormValues((prevValues) => ({
-      ...prevValues,
-      [fullName]: value,
-    }));
-  };
 
   const handleNextStep = () => {
     setActiveStep(activeStep + 1);
@@ -339,7 +299,6 @@ function CreateResume() {
         <Row>
           <Col md={4} className="mt-3 mb-3">
             <Card>
-              {/* style={{backgroundColor: "#f2f2f2"}} */}
               <Card.Body>
                 <div>
                   <ProgressBar
@@ -816,6 +775,7 @@ function CreateResume() {
 
                         {i !== 0 && (
                           <Button
+                            className="mt-2 mb-2"
                             variant="danger"
                             onClick={() => handleRemoveExperience(i)}
                           >
@@ -956,6 +916,7 @@ function CreateResume() {
 
                         {i !== 0 && (
                           <Button
+                            className="mt-2 mb-1"
                             variant="danger"
                             onClick={() => handleRemoveSkills(i)}
                           >
@@ -964,7 +925,7 @@ function CreateResume() {
                         )}
                       </div>
                     ))}
-                    <div className="d-flex justify-content-between">
+                    <div className="d-flex justify-content-between  mt-3">
                       <Button
                         className="me-3"
                         variant="success"
@@ -987,19 +948,6 @@ function CreateResume() {
                 )}
               </Card.Body>
             </Card>
-            <PDFViewer>
-              <DownloadResume formValues={formValues} />
-            </PDFViewer>
-            <div>
-              <PDFDownloadLink
-                document={<DownloadResume formValues={formValues} />}
-                fileName="somename.pdf"
-              >
-                {({ blob, url, loading, error }) =>
-                  loading ? "Loading document..." : "Download now!"
-                }
-              </PDFDownloadLink>
-            </div>
           </Col>
           <Col md={8} className="mt-3 mb-3">
             <Resume formValues={formValues} degreeStrings={degreeStrings} />
