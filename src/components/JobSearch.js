@@ -114,12 +114,18 @@ function JobSearch() {
   };
   const handleRemovePosition = () => {
     let newSelectedPositions = selectedPositions.slice();
-    newSelectedPositions.splice(positionIndex - 1, 1);
+    // newSelectedPositions.splice(positionIndex - 1, 1);
+    newSelectedPositions = newSelectedPositions.filter(
+      (v) => v !== otherPosition
+    );
     setSelectedPositions(newSelectedPositions);
+    if (newSelectedPositions.length === 0) setSelectedPositions([]);
     setPositionIndex(null);
   };
 
   const toJobList = (filteredJobs) => {
+    console.log(filteredJobs);
+    console.log(selectedPositions);
     navigate("/jobs/", {
       state: {
         filteredJobs: filteredJobs,
