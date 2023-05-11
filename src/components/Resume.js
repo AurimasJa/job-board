@@ -152,7 +152,7 @@ function Resume(props) {
               formValues.summary
             )}
           </div>
-          <h4>Ieškoma pozicija: </h4>
+          <h4>Ieškoma Pozicijos sritis: </h4>
           {formValues.position === "" ? (
             <p className="text-muted">Apsauga</p>
           ) : (

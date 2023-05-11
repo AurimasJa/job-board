@@ -157,7 +157,7 @@ function DownloadResume({ formValues }) {
                     marginBottom: "5px",
                   }}
                 >
-                  Ieškoma pozicija
+                  Ieškoma pozicijos sritis
                 </Text>
                 <Text style={{ fontSize: 16 }}>{formValues.position}</Text>
               </>

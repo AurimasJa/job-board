@@ -122,7 +122,7 @@ function CreateResume() {
         "Aprašymas yra neteisingas. Aprašymo ilgis nuo 20 iki 1000 simbolių.";
 
     if (!values.position || !values.position === "")
-      errors.position = "Pozicija yra privaloma";
+      errors.position = "Pozicijos sritis yra privaloma";
 
     values.educations.forEach((education, i) => {
       errors.educations = errors.educations || [];
@@ -177,7 +177,7 @@ function CreateResume() {
       }
       if (experience && (!experience.position || experience.position === 0)) {
         errors.experiences[i] = errors.experiences[i] || {};
-        errors.experiences[i].position = "Neteisinga pozicija";
+        errors.experiences[i].position = "Neteisinga pozicijos sritis";
       }
     });
     values.skills.forEach((skill, i) => {
@@ -657,10 +657,10 @@ function CreateResume() {
                         </Form.Group>
 
                         <Form.Group controlId={`position-${i}`}>
-                          <Form.Label>Pozicija</Form.Label>
+                          <Form.Label>Pozicijos sritis</Form.Label>
                           <Form.Control
                             type="text"
-                            placeholder="Jūsų buvusi/esama užimta pozicija"
+                            placeholder="Jūsų buvusi/esama užimta pozicijos sritis"
                             value={experience.position}
                             onChange={(event) => {
                               const newExperience = [...formValues.experiences];
@@ -851,10 +851,10 @@ function CreateResume() {
                       </Form.Control.Feedback>
                     </Form.Group>
                     <Form.Group controlId="realPositionId">
-                      <Form.Label>Pozicija</Form.Label>
+                      <Form.Label>Pozicijos sritis</Form.Label>
                       <Form.Control
                         type="text"
-                        placeholder="Jūsų ieškoma pozicija"
+                        placeholder="Jūsų ieškoma pozicijos sritis"
                         value={formValues.position}
                         onChange={(event) =>
                           setFormValues({

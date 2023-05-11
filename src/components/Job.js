@@ -295,7 +295,7 @@ function Job() {
                       {selectedJob.selection}
                     </Card.Text>
                     <Card.Text>
-                      <GrWorkshop className="me-2" /> Pozicija:{" "}
+                      <GrWorkshop className="me-2" /> Pozicijos sritis:{" "}
                       {selectedJob.position}
                     </Card.Text>
                     <Card.Text>

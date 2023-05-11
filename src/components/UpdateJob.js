@@ -67,7 +67,7 @@ function UpdateJob({ job, desc, comp }) {
       errors.title =
         "Pavadinimas per trumpas arba per ilgas, pavadinimo ilgis nuo 5 iki 100 simbolių";
     if (!values.position || !values.position === "")
-      errors.position = "Pozicija yra privaloma";
+      errors.position = "Pozicijos sritis yra privaloma";
     if (!values.positionLevel || !values.positionLevel === "")
       errors.positionLevel =
         "Pareigų lygis(Vadovas, Specialistas, (ne)kvalifikuotas darbuotojas) yra privalomas";
@@ -231,7 +231,7 @@ function UpdateJob({ job, desc, comp }) {
             <Form.Group controlId="realPosition">
               <FloatingLabel
                 controlId="positionInput"
-                label="Pozicija"
+                label="Pozicijos sritis"
                 className="mb-3"
               >
                 <Form.Control

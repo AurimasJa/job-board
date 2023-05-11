@@ -77,291 +77,312 @@ function Resumes() {
     const response = await resumesService.delete(resume.id, headers);
     if (response.status === 204) window.location.reload();
   };
+
+  const handleToCreateCv = () => {
+    navigate("/createresume");
+  };
   return (
     <>
       <Navham />
       <Container>
-        {(location.pathname === "/resume" && !selectedResume) ||
-        selectedResume === null ? (
-          <>
+        {resumes.length > 0 ? (
+          (location.pathname === "/resume" && !selectedResume) ||
+          selectedResume === null ? (
+            <>
+              <Row className="mt-3">
+                {resumes.map((resume) => (
+                  <Col key={resume.id} md={4}>
+                    <Card className="mb-3 ">
+                      <Card.Header>
+                        <div className="d-flex justify-content-between">
+                          <Card.Title>{resume.fullName}</Card.Title>
+                          <div className="d-flex justify-content-end">
+                            <UpdateResume resume={resume} />
+                            {resume.isHidden ? (
+                              <div
+                                onClick={() =>
+                                  handleUpdateResumeVisibility(
+                                    !resume.isHidden,
+                                    resume.id
+                                  )
+                                }
+                              >
+                                <span
+                                  style={{ color: "red", cursor: "pointer" }}
+                                >
+                                  ✗
+                                </span>
+                              </div>
+                            ) : (
+                              <div
+                                onClick={() =>
+                                  handleUpdateResumeVisibility(
+                                    !resume.isHidden,
+                                    resume.id
+                                  )
+                                }
+                              >
+                                <span
+                                  style={{ color: "green", cursor: "pointer" }}
+                                >
+                                  ✓
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </Card.Header>
+                      <Card.Body>
+                        <Card.Text>
+                          <GoMail /> {resume.email}
+                        </Card.Text>
+                        <Card.Text>
+                          <BsPhone /> {resume.phoneNumber}
+                        </Card.Text>
+                        {resume.isHidden ? (
+                          <p>
+                            <span style={{ color: "red" }}>✗</span> Tavo CV
+                            darbdaviai nemato!
+                          </p>
+                        ) : (
+                          <>
+                            <p>
+                              <span style={{ color: "green" }}>✓</span> Tavo CV
+                              darbdaviai mato!
+                            </p>
+                          </>
+                        )}
+                      </Card.Body>
+                      <div className="d-flex justify-content-evenly p-2">
+                        <div>
+                          <PDFDownloadLink
+                            document={<DownloadResume formValues={resume} />}
+                            fileName={resume.fullName + ".pdf"}
+                          >
+                            {({ blob, url, loading, error }) =>
+                              loading ? (
+                                "Loading document..."
+                              ) : (
+                                <BsCloudDownloadFill
+                                  style={{ color: "#212529" }}
+                                  size={30}
+                                />
+                              )
+                            }
+                          </PDFDownloadLink>
+                        </div>
+
+                        <BsFillEyeFill
+                          style={{ cursor: "pointer" }}
+                          onClick={() => {
+                            setSelectedResume(resume);
+                          }}
+                          size={30}
+                        />
+
+                        {location.pathname.startsWith("/resume") ? (
+                          <>
+                            <BsTrashFill
+                              style={{ cursor: "pointer" }}
+                              size={30}
+                              onClick={() => setSelectedDeleteResume(resume.id)}
+                            />
+                            {resume && resume.id === selectedDeleteResume && (
+                              <Modal
+                                show={true}
+                                onHide={() => setSelectedDeleteResume(null)}
+                              >
+                                <Card.Header>
+                                  <Card.Title>
+                                    <p>Ar tikrai norite ištrinti šį CV?</p>
+                                  </Card.Title>
+                                </Card.Header>
+                                <Card.Body className="text-center">
+                                  <div>
+                                    <p>{resume.fullName}</p>
+                                  </div>
+                                  <div className="d-flex justify-content-end">
+                                    <Button
+                                      variant="danger"
+                                      onClick={() => handleDeleteResume(resume)}
+                                    >
+                                      Ištrinti
+                                    </Button>
+                                  </div>
+                                </Card.Body>
+                              </Modal>
+                            )}
+                          </>
+                        ) : (
+                          ""
+                        )}
+                      </div>
+                    </Card>
+                  </Col>
+                ))}
+              </Row>
+            </>
+          ) : (
             <Row className="mt-3">
-              {resumes.map((resume) => (
-                <Col key={resume.id} md={4}>
-                  <Card className="mb-3 ">
-                    <Card.Header>
-                      <div className="d-flex justify-content-between">
-                        <Card.Title>{resume.fullName}</Card.Title>
-                        <div className="d-flex justify-content-end">
-                          <UpdateResume resume={resume} />
-                          {resume.isHidden ? (
-                            <div
-                              onClick={() =>
-                                handleUpdateResumeVisibility(
-                                  !resume.isHidden,
-                                  resume.id
-                                )
-                              }
-                            >
-                              <span style={{ color: "red", cursor: "pointer" }}>
-                                ✗
-                              </span>
-                            </div>
-                          ) : (
-                            <div
-                              onClick={() =>
-                                handleUpdateResumeVisibility(
-                                  !resume.isHidden,
-                                  resume.id
-                                )
-                              }
-                            >
-                              <span
-                                style={{ color: "green", cursor: "pointer" }}
+              <Col md={4}>
+                {resumes.map((resume) => (
+                  <>
+                    <Card
+                      className={
+                        selectedResume.id && selectedResume.id === resume.id
+                          ? "selected-resume mb-3"
+                          : "mb-3"
+                      }
+                    >
+                      <Card.Header>
+                        <div className="d-flex justify-content-between">
+                          <Card.Title>{resume.fullName}</Card.Title>
+                          <div className="d-flex justify-content-end">
+                            <UpdateResume resume={resume} />
+                            {resume.isHidden ? (
+                              <div
+                                onClick={() =>
+                                  handleUpdateResumeVisibility(
+                                    !resume.isHidden,
+                                    resume.id
+                                  )
+                                }
                               >
-                                ✓
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </Card.Header>
-                    <Card.Body>
-                      <Card.Text>
-                        <GoMail /> {resume.email}
-                      </Card.Text>
-                      <Card.Text>
-                        <BsPhone /> {resume.phoneNumber}
-                      </Card.Text>
-                      {resume.isHidden ? (
-                        <p>
-                          <span style={{ color: "red" }}>✗</span> Tavo CV
-                          darbdaviai nemato!
-                        </p>
-                      ) : (
-                        <>
-                          <p>
-                            <span style={{ color: "green" }}>✓</span> Tavo CV
-                            darbdaviai mato!
-                          </p>
-                        </>
-                      )}
-                    </Card.Body>
-                    <div className="d-flex justify-content-evenly p-2">
-                      <div>
-                        <PDFDownloadLink
-                          document={<DownloadResume formValues={resume} />}
-                          fileName={resume.fullName + ".pdf"}
-                        >
-                          {({ blob, url, loading, error }) =>
-                            loading ? (
-                              "Loading document..."
+                                <span
+                                  style={{ color: "red", cursor: "pointer" }}
+                                >
+                                  ✗
+                                </span>
+                              </div>
                             ) : (
-                              <BsCloudDownloadFill
-                                style={{ color: "#212529" }}
-                                size={30}
-                              />
-                            )
-                          }
-                        </PDFDownloadLink>
+                              <div
+                                onClick={() =>
+                                  handleUpdateResumeVisibility(
+                                    !resume.isHidden,
+                                    resume.id
+                                  )
+                                }
+                              >
+                                <span
+                                  style={{ color: "green", cursor: "pointer" }}
+                                >
+                                  ✓
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </Card.Header>
+                      <Card.Body>
+                        <Card.Text>
+                          <GoMail /> {resume.email}
+                        </Card.Text>
+                        <Card.Text>
+                          <BsPhone /> {resume.phoneNumber}
+                        </Card.Text>
+                        {resume.isHidden ? (
+                          <p>
+                            <span style={{ color: "red" }}>✗</span> Tavo CV
+                            darbdaviai nemato!
+                          </p>
+                        ) : (
+                          <>
+                            <p>
+                              <span style={{ color: "green" }}>✓</span> Tavo CV
+                              darbdaviai mato!
+                            </p>
+                          </>
+                        )}
+                      </Card.Body>
+                      <div className="d-flex justify-content-evenly p-2">
+                        <div>
+                          <PDFDownloadLink
+                            document={<DownloadResume formValues={resume} />}
+                            fileName={resume.fullName + ".pdf"}
+                          >
+                            {({ blob, url, loading, error }) =>
+                              loading ? (
+                                "Loading document..."
+                              ) : (
+                                <BsCloudDownloadFill
+                                  style={{ color: "#212529" }}
+                                  size={30}
+                                />
+                              )
+                            }
+                          </PDFDownloadLink>
+                        </div>
+
+                        <BsFillEyeFill
+                          style={{ cursor: "pointer" }}
+                          onClick={() => {
+                            setSelectedResume(resume);
+                          }}
+                          size={30}
+                        />
+
+                        {location.pathname.startsWith("/resume") ? (
+                          <>
+                            <BsTrashFill
+                              size={30}
+                              style={{ cursor: "pointer" }}
+                              onClick={() => setSelectedDeleteResume(resume.id)}
+                            />
+                            {resume && resume.id === selectedDeleteResume && (
+                              <Modal
+                                show={true}
+                                onHide={() => setSelectedDeleteResume(null)}
+                              >
+                                <Card.Header>
+                                  <Card.Title>
+                                    <p>Ar tikrai norite ištrinti šį CV?</p>
+                                  </Card.Title>
+                                </Card.Header>
+                                <Card.Body className="text-center">
+                                  <div>
+                                    <p>{resume.fullName}</p>
+                                  </div>
+                                  <div className="d-flex justify-content-end">
+                                    <Button
+                                      variant="danger"
+                                      onClick={() => handleDeleteResume(resume)}
+                                    >
+                                      Ištrinti
+                                    </Button>
+                                  </div>
+                                </Card.Body>
+                              </Modal>
+                            )}
+                          </>
+                        ) : (
+                          ""
+                        )}
                       </div>
-
-                      <BsFillEyeFill
-                        style={{ cursor: "pointer" }}
-                        onClick={() => {
-                          setSelectedResume(resume);
-                        }}
-                        size={30}
-                      />
-
-                      {location.pathname.startsWith("/resume") ? (
-                        <>
-                          <BsTrashFill
-                            style={{ cursor: "pointer" }}
-                            size={30}
-                            onClick={() => setSelectedDeleteResume(resume.id)}
-                          />
-                          {resume && resume.id === selectedDeleteResume && (
-                            <Modal
-                              show={true}
-                              onHide={() => setSelectedDeleteResume(null)}
-                            >
-                              <Card.Header>
-                                <Card.Title>
-                                  <p>Ar tikrai norite ištrinti šį CV?</p>
-                                </Card.Title>
-                              </Card.Header>
-                              <Card.Body className="text-center">
-                                <div>
-                                  <p>{resume.fullName}</p>
-                                </div>
-                                <div className="d-flex justify-content-end">
-                                  <Button
-                                    variant="danger"
-                                    onClick={() => handleDeleteResume(resume)}
-                                  >
-                                    Ištrinti
-                                  </Button>
-                                </div>
-                              </Card.Body>
-                            </Modal>
-                          )}
-                        </>
-                      ) : (
-                        ""
-                      )}
-                    </div>
-                  </Card>
-                </Col>
-              ))}
+                    </Card>
+                  </>
+                ))}
+              </Col>
+              <Col md={8}>
+                {selectedResume && (
+                  <Resume
+                    formValues={selectedResume}
+                    degreeStrings={degreeStrings}
+                  />
+                )}
+              </Col>
             </Row>
-          </>
+          )
         ) : (
-          <Row className="mt-3">
-            <Col md={4}>
-              {resumes.map((resume) => (
-                <>
-                  <Card
-                    className={
-                      selectedResume.id && selectedResume.id === resume.id
-                        ? "selected-resume mb-3"
-                        : "mb-3"
-                    }
-                  >
-                    <Card.Header>
-                      <div className="d-flex justify-content-between">
-                        <Card.Title>{resume.fullName}</Card.Title>
-                        <div className="d-flex justify-content-end">
-                          <UpdateResume resume={resume} />
-                          {resume.isHidden ? (
-                            <div
-                              onClick={() =>
-                                handleUpdateResumeVisibility(
-                                  !resume.isHidden,
-                                  resume.id
-                                )
-                              }
-                            >
-                              <span style={{ color: "red", cursor: "pointer" }}>
-                                ✗
-                              </span>
-                            </div>
-                          ) : (
-                            <div
-                              onClick={() =>
-                                handleUpdateResumeVisibility(
-                                  !resume.isHidden,
-                                  resume.id
-                                )
-                              }
-                            >
-                              <span
-                                style={{ color: "green", cursor: "pointer" }}
-                              >
-                                ✓
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </Card.Header>
-                    <Card.Body>
-                      <Card.Text>
-                        <GoMail /> {resume.email}
-                      </Card.Text>
-                      <Card.Text>
-                        <BsPhone /> {resume.phoneNumber}
-                      </Card.Text>
-                      {resume.isHidden ? (
-                        <p>
-                          <span style={{ color: "red" }}>✗</span> Tavo CV
-                          darbdaviai nemato!
-                        </p>
-                      ) : (
-                        <>
-                          <p>
-                            <span style={{ color: "green" }}>✓</span> Tavo CV
-                            darbdaviai mato!
-                          </p>
-                        </>
-                      )}
-                    </Card.Body>
-                    <div className="d-flex justify-content-evenly p-2">
-                      <div>
-                        <PDFDownloadLink
-                          document={<DownloadResume formValues={resume} />}
-                          fileName={resume.fullName + ".pdf"}
-                        >
-                          {({ blob, url, loading, error }) =>
-                            loading ? (
-                              "Loading document..."
-                            ) : (
-                              <BsCloudDownloadFill
-                                style={{ color: "#212529" }}
-                                size={30}
-                              />
-                            )
-                          }
-                        </PDFDownloadLink>
-                      </div>
-
-                      <BsFillEyeFill
-                        style={{ cursor: "pointer" }}
-                        onClick={() => {
-                          setSelectedResume(resume);
-                        }}
-                        size={30}
-                      />
-
-                      {location.pathname.startsWith("/resume") ? (
-                        <>
-                          <BsTrashFill
-                            size={30}
-                            style={{ cursor: "pointer" }}
-                            onClick={() => setSelectedDeleteResume(resume.id)}
-                          />
-                          {resume && resume.id === selectedDeleteResume && (
-                            <Modal
-                              show={true}
-                              onHide={() => setSelectedDeleteResume(null)}
-                            >
-                              <Card.Header>
-                                <Card.Title>
-                                  <p>Ar tikrai norite ištrinti šį CV?</p>
-                                </Card.Title>
-                              </Card.Header>
-                              <Card.Body className="text-center">
-                                <div>
-                                  <p>{resume.fullName}</p>
-                                </div>
-                                <div className="d-flex justify-content-end">
-                                  <Button
-                                    variant="danger"
-                                    onClick={() => handleDeleteResume(resume)}
-                                  >
-                                    Ištrinti
-                                  </Button>
-                                </div>
-                              </Card.Body>
-                            </Modal>
-                          )}
-                        </>
-                      ) : (
-                        ""
-                      )}
-                    </div>
-                  </Card>
-                </>
-              ))}
-            </Col>
-            <Col md={8}>
-              {selectedResume && (
-                <Resume
-                  formValues={selectedResume}
-                  degreeStrings={degreeStrings}
-                />
-              )}
-            </Col>
-          </Row>
+          <>
+            <Card.Body>
+              <h3 className="text-center">Kolkas tu neturi susikūręs CV.</h3>
+              <div className="d-flex justify-content-center">
+                <Button className="me-3" onClick={() => handleToCreateCv()}>
+                  Susikurk CV
+                </Button>
+              </div>
+            </Card.Body>
+          </>
         )}
       </Container>
       <Footer />

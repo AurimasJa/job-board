@@ -181,7 +181,7 @@ function JobSearch() {
                       style={{ width: "100%" }}
                       className="p-3 mb-3"
                     >
-                      Pozicija
+                      Pozicijos sritis
                     </Dropdown.Toggle>
 
                     <Dropdown.Menu className="p-2">

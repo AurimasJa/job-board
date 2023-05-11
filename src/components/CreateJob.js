@@ -32,7 +32,7 @@ function JobCreate(props) {
       errors.description =
         "Aprašymas per trumpas arba per ilgas, pavadinimo ilgis nuo 30 iki 1000 simbolių";
     if (!values.position || !values.position === "")
-      errors.position = "Pozicija yra privaloma";
+      errors.position = "Pozicijos sritis yra privaloma";
     if (!values.positionLevel || !values.positionLevel === "")
       errors.positionLevel =
         "Pareigų lygis(Vadovas, Specialistas, (ne)kvalifikuotas darbuotojas) yra privalomas";
@@ -219,7 +219,7 @@ function JobCreate(props) {
             <Form.Group controlId="realPosition">
               <FloatingLabel
                 controlId="positionInput"
-                label="Pozicija"
+                label="Pozicijos sritis"
                 className="mb-3"
               >
                 <Form.Control

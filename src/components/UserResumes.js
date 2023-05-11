@@ -183,7 +183,7 @@ function UserResumes() {
               />
             </Form.Group>
             <Form.Group style={{ width: "50%" }}>
-              <Form.Label className="fw-bold fs-5">Pozicija</Form.Label>
+              <Form.Label className="fw-bold fs-5">Pozicijos sritis</Form.Label>
               <Form.Control
                 type="text"
                 className="form-control"

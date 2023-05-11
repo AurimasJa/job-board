@@ -245,7 +245,7 @@ function Profile() {
             <JobSearch />
             <Container>
               <h4 className="mb-3 text-center">Tavo profilis</h4>
-              {!resumesLength ? (
+              {!userData ? (
                 <div
                   style={{
                     display: "flex",
