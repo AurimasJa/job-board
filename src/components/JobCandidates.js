@@ -102,12 +102,13 @@ function Jobcandidates() {
           {jobResumes.length > 0 ? (
             selectedResume === null ? (
               <>
+                {console.log(resumes)}
                 <Row>
                   {resumes.map((resume) => (
                     <Col md={4} key={resume.id} className="">
                       <Row>
                         <Card className="mb-2 mt-2">
-                          <Card.Body>
+                          <Card.Body style={{ maxHeight: "300px" }}>
                             <div className="d-flex justify-content-between">
                               <Card.Title>
                                 {resume.fullName} (
@@ -121,24 +122,27 @@ function Jobcandidates() {
                             <Card.Text style={{ textDecoration: "underline" }}>
                               {resume.email}
                             </Card.Text>
+                            <Card.Text>
+                              Pageidautinas atlyginimas nuo: {resume.salary}€
+                            </Card.Text>
                             {resume.summary.length > 50 ? (
                               <span>{resume.summary.slice(0, 100)}...</span>
                             ) : (
                               <span>{resume.summary}</span>
                             )}
-                            <div className="d-flex justify-content-end">
-                              <Button
-                                variant="link"
-                                style={{ textDecoration: "none" }}
-                                onClick={() => {
-                                  handleSelectResume(resume);
-                                  handleUpdateJobCandidatesCount(resume);
-                                }}
-                              >
-                                Plačiau
-                              </Button>
-                            </div>
                           </Card.Body>
+                          <div className="d-flex justify-content-end">
+                            <Button
+                              variant="link"
+                              style={{ textDecoration: "none" }}
+                              onClick={() => {
+                                handleSelectResume(resume);
+                                handleUpdateJobCandidatesCount(resume);
+                              }}
+                            >
+                              Plačiau
+                            </Button>
+                          </div>
                         </Card>
                       </Row>
                     </Col>
@@ -158,7 +162,7 @@ function Jobcandidates() {
                             : " mt-3"
                         }
                       >
-                        <Card.Body>
+                        <Card.Body style={{ maxHeight: "300px" }}>
                           <div className="d-flex justify-content-between">
                             <Card.Title>
                               {resume.fullName} (
@@ -171,6 +175,9 @@ function Jobcandidates() {
                           </Card.Subtitle>
                           <Card.Text style={{ textDecoration: "underline" }}>
                             {resume.email}
+                          </Card.Text>
+                          <Card.Text>
+                            Pageidautinas atlyginimas nuo: {resume.salary}€
                           </Card.Text>
                           {resume.summary.length > 50 ? (
                             <span>{resume.summary.slice(0, 100)}...</span>

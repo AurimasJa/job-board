@@ -31,9 +31,15 @@ function ViewResume() {
     }
   }, []);
   const fetchResume = async (resumeId) => {
-    const response = await resumesService.fetchResume(resumeId);
-    if (user && user[0] && user[0] === response.data.userId) {
-      setResumes(response.data);
+    if (user) {
+      const headers = {
+        Authorization: `Bearer ${user[3]}`,
+      };
+
+      const response = await resumesService.fetchResume(resumeId, headers);
+      if (user && user[0] && user[0] === response.data.userId) {
+        setResumes(response.data);
+      }
     }
   };
   useEffect(() => {

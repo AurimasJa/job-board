@@ -132,7 +132,7 @@ function Calculatesalary() {
             {(result || result == 0) && (
               <p className="d-flex justify-content-between ">
                 Atlyginimas į rankas:{" "}
-                <span data-testid="result">{result.toFixed(2)}€</span>
+                <span data-testid="netSalary">{result.toFixed(2)}€</span>
               </p>
             )}
             <hr />

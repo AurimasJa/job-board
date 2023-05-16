@@ -39,12 +39,16 @@ class JobResumes {
       });
   }
   //create
-  async applyToJob(id, jId) {
+  async applyToJob(id, jId, headers) {
     return await axios
-      .post("https://localhost:7045/api/jobsresumes", {
-        resumeId: id,
-        jobId: jId,
-      })
+      .post(
+        "https://localhost:7045/api/jobsresumes",
+        {
+          resumeId: id,
+          jobId: jId,
+        },
+        { headers }
+      )
       .then((response) => {
         console.log(response);
         return response;

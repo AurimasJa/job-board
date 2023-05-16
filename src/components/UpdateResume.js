@@ -68,6 +68,12 @@ function UpdateResume({ resume }) {
       errors.summary =
         "Aprašymas yra neteisingas. Aprašymo ilgis nuo 20 iki 1000 simbolių.";
 
+    if (
+      !Number(values.salary) < 0 ||
+      !Number(values.salary) === "" ||
+      !Number(values.salary)
+    )
+      errors.salary = "Blogai įvestas atlyginimas";
     if (!values.position || !values.position === "")
       errors.position = "Pozicijos sritis yra privaloma";
 
@@ -346,6 +352,24 @@ function UpdateResume({ resume }) {
               />
               <Form.Control.Feedback type="invalid">
                 {errors.phoneNumber}
+              </Form.Control.Feedback>
+            </Form.Group>
+            <Form.Group controlId="realSalaryId">
+              <Form.Label>Pageidautinas atlyginimas (nuo) €</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Jūsų pageidautinas atlyginimas (nuo) €"
+                value={resumeUpdateData.salary}
+                onChange={(event) =>
+                  setResumeUpdateData({
+                    ...resumeUpdateData,
+                    salary: event.target.value,
+                  })
+                }
+                isInvalid={!!errors.salary}
+              />
+              <Form.Control.Feedback type="invalid">
+                {errors.salary}
               </Form.Control.Feedback>
             </Form.Group>
             <Form.Group controlId="realAddressId">

@@ -16,6 +16,7 @@ import { PDFDownloadLink } from "@react-pdf/renderer";
 import DownloadResume from "./DownloadResume";
 import UpdateResume from "./UpdateResume";
 import resumesService from "../services/resumes.service";
+import { GiReceiveMoney } from "react-icons/gi";
 
 function Resumes() {
   const navigate = useNavigate();
@@ -133,6 +134,9 @@ function Resumes() {
                         </div>
                       </Card.Header>
                       <Card.Body>
+                        <Card.Text>
+                          <GiReceiveMoney /> Atlyginimas nuo {resume.salary}€
+                        </Card.Text>
                         <Card.Text>
                           <GoMail /> {resume.email}
                         </Card.Text>
@@ -274,6 +278,9 @@ function Resumes() {
                         </div>
                       </Card.Header>
                       <Card.Body>
+                        <Card.Text>
+                          <GiReceiveMoney /> Atlyginimas nuo {resume.salary}€
+                        </Card.Text>
                         <Card.Text>
                           <GoMail /> {resume.email}
                         </Card.Text>

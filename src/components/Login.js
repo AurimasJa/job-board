@@ -624,7 +624,7 @@ function Login(props) {
                 <p>
                   {activeRegLog === "login"
                     ? "Ačiū, kad naudojatės šia sistema. Mes tikime, kad ši sistema padės Jums susirasti sau tinkamą darbą, o jei esate darbdavys, tikime, kad surasite sau tinkamą darbuotoją!"
-                    : "Užsiregistruodamas sistemoje tu mums parodai, kad tai yra reikalinga Tau ir tikime, kad surasi tai, ko ieškai. Svarbiausia - nebijok bandyti."}
+                    : "Užsiregistruodamas sistemoje Tu mums parodai, kad tai yra reikalinga Tau ir tikime, kad surasi tai, ko ieškai. Svarbiausia - nebijok bandyti."}
                 </p>
               </div>
             </Col>

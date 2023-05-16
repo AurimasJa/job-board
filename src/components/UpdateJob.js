@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Button, Card, FloatingLabel, Form, Modal } from "react-bootstrap";
 import authService from "../services/auth.service";
-import { useNavigate } from "react-router-dom";
 import { Typeahead } from "react-bootstrap-typeahead";
 import cities from "../data/cities";
 import "../style.css"; // import your CSS file

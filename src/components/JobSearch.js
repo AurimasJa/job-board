@@ -19,12 +19,12 @@ import jobService from "../services/job.service";
 function JobSearch() {
   const navigate = useNavigate();
 
-  const [searchQuery, setSearchQuery] = useState("");
+  const [titleName, setTitleName] = useState("");
   const [location, setLocation] = useState([""]);
 
   const [jobs, setJobs] = useState([]);
   const handleSearchChange = (event) => {
-    setSearchQuery(event.target.value);
+    setTitleName(event.target.value);
   };
 
   const [selectedPositions, setSelectedPositions] = useState([]);
@@ -32,13 +32,13 @@ function JobSearch() {
   const filteredJobs = jobs.filter((job) => {
     const isTitleMatch = job.title
       .toLowerCase()
-      .includes(searchQuery.toLowerCase());
-    var isLocationMatch = "";
+      .includes(titleName.toLowerCase());
+    var locationEquals = "";
     if (!location[0]) {
       location[0] = "";
     }
     if (location[0] === "" || location[0] !== "") {
-      isLocationMatch = job.city
+      locationEquals = job.city
         .toLowerCase()
         .includes(location[0].toLowerCase());
     }
@@ -51,16 +51,16 @@ function JobSearch() {
 
     const isSalaryMatch = salary === 0 || job.salary >= salary;
 
-    if (location && searchQuery && !selectedPositions.length) {
-      return isTitleMatch && isLocationMatch && isSalaryMatch;
-    } else if (location && !searchQuery && !selectedPositions.length) {
-      return isLocationMatch && isSalaryMatch;
-    } else if (!location && searchQuery && !selectedPositions.length) {
+    if (location && titleName && !selectedPositions.length) {
+      return isTitleMatch && locationEquals && isSalaryMatch;
+    } else if (location && !titleName && !selectedPositions.length) {
+      return locationEquals && isSalaryMatch;
+    } else if (!location && titleName && !selectedPositions.length) {
       return isTitleMatch && isSalaryMatch;
-    } else if (location && searchQuery && selectedPositions.length === 0) {
-      return isTitleMatch && isLocationMatch && isSalaryMatch;
+    } else if (location && titleName && selectedPositions.length === 0) {
+      return isTitleMatch && locationEquals && isSalaryMatch;
     } else {
-      return isOptionMatch && isLocationMatch && isTitleMatch && isSalaryMatch;
+      return isOptionMatch && locationEquals && isTitleMatch && isSalaryMatch;
     }
   });
   const [isPressed, setIsPressed] = useState(false);
@@ -114,7 +114,6 @@ function JobSearch() {
   };
   const handleRemovePosition = () => {
     let newSelectedPositions = selectedPositions.slice();
-    // newSelectedPositions.splice(positionIndex - 1, 1);
     newSelectedPositions = newSelectedPositions.filter(
       (v) => v !== otherPosition
     );
@@ -151,7 +150,7 @@ function JobSearch() {
                       controlId="titleInput"
                       label="Raktinis žodis"
                       className="mb-3"
-                      value={searchQuery}
+                      value={titleName}
                       onChange={handleSearchChange}
                     >
                       <Form.Control type="text" placeholder="Pavadinimas" />

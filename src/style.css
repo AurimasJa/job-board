@@ -177,3 +177,16 @@
   transform: scale(1.05);
   transition: all 0.3s ease-in-out;
 }
+.hidden-job {
+  position: relative;
+}
+
+.hidden-job::before {
+  content: "NEMATOMAS";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 5vw;
+  opacity: 0.2;
+}

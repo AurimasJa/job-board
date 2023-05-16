@@ -92,6 +92,7 @@ function CreateResume() {
     references: "",
     position: "",
     summary: "",
+    salary: null,
   });
   const validateData = (values) => {
     let errors = {};
@@ -117,6 +118,12 @@ function CreateResume() {
       errors.address = "Adresas yra privalomas";
     if (!values.summary || !values.summary === "")
       errors.summary = "Aprašymas yra privalomas";
+    if (
+      !Number(values.salary) < 0 ||
+      !Number(values.salary) === "" ||
+      !Number(values.salary)
+    )
+      errors.salary = "Blogai įvestas atlyginimas";
     else if (values.length < 20 || values.length > 1000)
       errors.summary =
         "Aprašymas yra neteisingas. Aprašymo ilgis nuo 20 iki 1000 simbolių.";
@@ -383,6 +390,25 @@ function CreateResume() {
                       />
                       <Form.Control.Feedback type="invalid">
                         {errors.phoneNumber}
+                      </Form.Control.Feedback>
+                    </Form.Group>
+
+                    <Form.Group controlId="realSalaryId">
+                      <Form.Label>Pageidautinas atlyginimas (nuo) €</Form.Label>
+                      <Form.Control
+                        type="text"
+                        placeholder="Jūsų pageidautinas atlyginimas (nuo) €"
+                        value={formValues.salary}
+                        onChange={(event) =>
+                          setFormValues({
+                            ...formValues,
+                            salary: event.target.value,
+                          })
+                        }
+                        isInvalid={!!errors.salary}
+                      />
+                      <Form.Control.Feedback type="invalid">
+                        {errors.salary}
                       </Form.Control.Feedback>
                     </Form.Group>
                     <Form.Group controlId="realAddressId">

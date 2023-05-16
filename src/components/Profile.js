@@ -148,8 +148,14 @@ function Profile() {
 
       const getCvReviewedByCompanies = async () => {
         if (user) {
+          const headers = {
+            Authorization: `Bearer ${user[3]}`,
+          };
           const respose =
-            await companiesresumesService.getResumesViewedByCompanies(user[0]);
+            await companiesresumesService.getResumesViewedByCompanies(
+              user[0],
+              headers
+            );
           setCompaniesReview(respose);
         } else {
           console.log("Neprisijungęs");

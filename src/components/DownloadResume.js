@@ -63,6 +63,9 @@ function DownloadResume({ formValues }) {
                 marginBottom: "10px",
               }}
             />
+            <Text style={{ fontSize: 16 }}>
+              Pageidautinas atlyginimas: {formValues.salary}€
+            </Text>
             <Text style={{ fontSize: 16 }}>{formValues.phoneNumber}</Text>
             <Text style={{ fontSize: 16 }}>{formValues.address}</Text>
             <Text style={{ fontSize: 16 }}>{formValues.city}</Text>

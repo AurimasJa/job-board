@@ -37,7 +37,10 @@ function ApplyToJob({ jobId }) {
   const handleShow = () => setShow(true);
   const handleSelectResume = (id) => setSelectedResume(id);
   const handleApply = async (id, jId) => {
-    const response = await jobresumesService.applyToJob(id, jId);
+    const headers = {
+      Authorization: `Bearer ${user[3]}`,
+    };
+    const response = await jobresumesService.applyToJob(id, jId, headers);
     if (response.status === 201) {
       navigate("/profile", {
         state: {
@@ -94,6 +97,7 @@ function ApplyToJob({ jobId }) {
                           </Card.Subtitle>
                           <Card.Text style={{ minHeight: "192px" }}>
                             Gimimo data: {resume.yearOfBirth.slice(0, 10)}
+                            Atlyginimas nuo: {resume.salary}
                             <br />
                             {resume.summary.length > 240 ? (
                               <span>{resume.summary.slice(0, 240)}...</span>

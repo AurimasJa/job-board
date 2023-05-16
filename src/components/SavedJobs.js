@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Footer from "./Footer";
 import Navham from "./Navham";
-import axios from "axios";
 import JobList from "./JobList";
 import { Container } from "react-bootstrap";
 import JobSearch from "./JobSearch";

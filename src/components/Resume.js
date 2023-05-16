@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { BsPhone } from "react-icons/bs";
 import { FaAddressCard, FaCity } from "react-icons/fa";
+import { GiReceiveMoney } from "react-icons/gi";
 
 function Resume(props) {
   const { education, degreeStrings } = props;
@@ -32,6 +33,17 @@ function Resume(props) {
           </h4>
           <hr />
           <div>
+            {formValues.salary === "" || formValues.salary === null ? (
+              <p className="text-muted">
+                <GiReceiveMoney /> Atlyginimas nuo 2000€
+              </p>
+            ) : (
+              <>
+                <p>
+                  <GiReceiveMoney /> Atlyginimas nuo {formValues.salary}€
+                </p>
+              </>
+            )}
             {formValues.phoneNumber === "" ? (
               <p className="text-muted">
                 <BsPhone /> +37060000000

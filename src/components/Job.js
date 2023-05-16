@@ -146,7 +146,6 @@ function Job() {
                 <Row>
                   <Col key={selectedJob.id} className="mb-4">
                     <Card className="square border border-3 mt-2">
-                      {/* style={{backgroundColor: "#f2f2f2"}} */}
                       <div className="d-flex flex-column flex-md-row align-items-start">
                         <img
                           src="https://via.placeholder.com/300"
@@ -280,12 +279,10 @@ function Job() {
                       </Card.Text>
                     )}
                     <hr />
-                    {/* <div className="d-flex "> */}
                     <Card.Text>
                       <BsClock className="me-2" /> Darbo laikas:{" "}
                       <span> {selectedJob.totalWorkHours}</span>
                     </Card.Text>
-                    {/* </div> */}
                     <Card.Text>
                       <BsPersonWorkspace className="me-2" /> Darbas iš namų:{" "}
                       {selectedJob.remoteWork ? "taip" : "ne"}

@@ -11,9 +11,10 @@ class ResumesService {
         return notHiddenResumes;
       });
   }
-  async fetchResume(resumeId) {
+  async fetchResume(resumeId, headers) {
     const response = await axios.get(
-      `https://localhost:7045/api/resumes/${resumeId}`
+      `https://localhost:7045/api/resumes/${resumeId}`,
+      { headers }
     );
     return response;
   }
@@ -56,6 +57,7 @@ class ResumesService {
           references: formValues.references,
           position: formValues.position,
           summary: formValues.summary,
+          salary: formValues.salary,
         },
         { headers }
       );
@@ -102,6 +104,7 @@ class ResumesService {
           references: resumeUpdateData.references,
           position: resumeUpdateData.position,
           summary: resumeUpdateData.summary,
+          salary: resumeUpdateData.salary,
         },
         {
           headers,

@@ -1,13 +1,10 @@
 import { Navbar, Nav, Container, Button, Modal } from "react-bootstrap";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Login from "./Login";
 import AuthService from "../services/auth.service";
 import { BsPersonCircle } from "react-icons/bs";
-import axios from "axios";
 
 function Navham() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-
   const [showLoginModal, setShowLoginModal] = useState(false);
 
   const handleLoginModalShow = () => setShowLoginModal(true);
@@ -21,7 +18,7 @@ function Navham() {
   return (
     <Navbar collapseOnSelect expand="lg" bg="dark" sticky="top" variant="dark">
       <Container>
-        <Navbar.Brand href="/">JobBoard</Navbar.Brand>
+        <Navbar.Brand href="/">ADarbai</Navbar.Brand>
         <Navbar.Toggle aria-controls="responsive-navbar-nav" />
         <Navbar.Collapse id="responsive-navbar-nav">
           <Nav className="me-auto">

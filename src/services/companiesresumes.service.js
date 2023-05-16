@@ -1,9 +1,11 @@
 import axios from "axios";
 
 class Users {
-  async getResumesViewedByCompanies(id) {
+  async getResumesViewedByCompanies(id, headers) {
     return await axios
-      .get("https://localhost:7045/api/companiesresume/companies/" + id)
+      .get("https://localhost:7045/api/companiesresume/companies/" + id, {
+        headers,
+      })
       .then((response) => {
         const responseToArray = Object.values(response.data);
         return responseToArray;

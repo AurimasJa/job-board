@@ -18,6 +18,7 @@ import { PDFDownloadLink } from "@react-pdf/renderer";
 import DownloadResume from "./DownloadResume";
 import resumesService from "../services/resumes.service";
 import companiesresumesService from "../services/companiesresumes.service";
+import { GiReceiveMoney } from "react-icons/gi";
 
 function UserResumes() {
   const navigate = useNavigate();
@@ -27,12 +28,13 @@ function UserResumes() {
   const [resumesIsLoaded, setResumesIsLoaded] = useState(false);
   const [selectedResume, setSelectedResume] = useState(null);
   const [savedResumesIds, setSavedResumesIds] = useState([]);
+  const [salary, setSalary] = useState(0);
 
   const [loadMore, setLoadMore] = useState(false);
 
   const [filteredResumes, setFilteredResumes] = useState([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [hasExperience, setHasExperience] = useState(false);
+  const [fullName, setFullName] = useState("");
+  const [experience, setExperience] = useState(false);
   const [position, setPosition] = useState("");
   const degreeStrings = [
     "Pasirinkti",
@@ -63,6 +65,9 @@ function UserResumes() {
     setSavedResumesIds(saveUserResumesIds);
   }, []);
 
+  const handleInputChange = (event) => {
+    setSalary(event.target.value);
+  };
   const fetchResumes = async (headers) => {
     const response = await resumesService.fetchResumes(headers);
     setResumes(response);
@@ -104,58 +109,64 @@ function UserResumes() {
   }, [resumes]);
 
   const filteredResumesByTitle = resumes.filter((resume) => {
-    const isTitleMatch = resume.fullName
+    const userFullName = resume.fullName
       .toLowerCase()
-      .includes(searchQuery.toLowerCase());
+      .includes(fullName.toLowerCase());
     const isPositionMatch = resume.position
       .toLowerCase()
       .includes(position.toLowerCase());
     const isExperienceMatch = resume.experiences.length > 0;
+    const isSalaryMatch = salary === 0 || resume.salary >= salary;
 
-    if (position && searchQuery && hasExperience) {
-      return isTitleMatch && isPositionMatch && isExperienceMatch;
-    } else if (position && searchQuery && !hasExperience) {
+    if (position && fullName && experience) {
+      return (
+        userFullName && isPositionMatch && isExperienceMatch && isSalaryMatch
+      );
+    } else if (position && fullName && !experience) {
       return false;
-    } else if (position && !searchQuery && hasExperience) {
-      return isPositionMatch && isExperienceMatch;
-    } else if (position && !searchQuery && !hasExperience) {
-      return isPositionMatch;
-    } else if (!position && searchQuery && hasExperience) {
-      return isTitleMatch && isExperienceMatch;
-    } else if (!position && searchQuery && !hasExperience) {
-      return isTitleMatch;
-    } else if (!position && !searchQuery && hasExperience) {
-      return isExperienceMatch;
+    } else if (position && !fullName && experience) {
+      return isPositionMatch && isExperienceMatch && isSalaryMatch;
+    } else if (position && !fullName && !experience) {
+      return isPositionMatch && isSalaryMatch;
+    } else if (!position && fullName && experience) {
+      return userFullName && isExperienceMatch && isSalaryMatch;
+    } else if (!position && fullName && !experience) {
+      return userFullName && isSalaryMatch;
+    } else if (!position && !fullName && experience) {
+      return isExperienceMatch && isSalaryMatch;
     } else {
-      return true;
+      return isSalaryMatch;
     }
   });
 
   const filteredResumesYouLiked = filteredResumes.filter((resume) => {
-    const isTitleMatch = resume.fullName
+    const userFullName = resume.fullName
       .toLowerCase()
-      .includes(searchQuery.toLowerCase());
+      .includes(fullName.toLowerCase());
     const isPositionMatch = resume.position
       .toLowerCase()
       .includes(position.toLowerCase());
     const isExperienceMatch = resume.experiences.length > 0;
+    const isSalaryMatch = salary === 0 || resume.salary >= salary;
 
-    if (position && searchQuery && hasExperience) {
-      return isTitleMatch && isPositionMatch && isExperienceMatch;
-    } else if (position && searchQuery && !hasExperience) {
+    if (position && fullName && experience) {
+      return (
+        userFullName && isPositionMatch && isExperienceMatch && isSalaryMatch
+      );
+    } else if (position && fullName && !experience) {
       return false;
-    } else if (position && !searchQuery && hasExperience) {
-      return isPositionMatch && isExperienceMatch;
-    } else if (position && !searchQuery && !hasExperience) {
-      return isPositionMatch;
-    } else if (!position && searchQuery && hasExperience) {
-      return isTitleMatch && isExperienceMatch;
-    } else if (!position && searchQuery && !hasExperience) {
-      return isTitleMatch;
-    } else if (!position && !searchQuery && hasExperience) {
-      return isExperienceMatch;
+    } else if (position && !fullName && experience) {
+      return isPositionMatch && isExperienceMatch && isSalaryMatch;
+    } else if (position && !fullName && !experience) {
+      return isPositionMatch && isSalaryMatch;
+    } else if (!position && fullName && experience) {
+      return userFullName && isExperienceMatch && isSalaryMatch;
+    } else if (!position && fullName && !experience) {
+      return userFullName && isSalaryMatch;
+    } else if (!position && !fullName && experience) {
+      return isExperienceMatch && isSalaryMatch;
     } else {
-      return true;
+      return isSalaryMatch;
     }
   });
   const handleShowMoreFilters = () => {
@@ -178,8 +189,8 @@ function UserResumes() {
               <Form.Control
                 type="text"
                 className=""
-                value={searchQuery}
-                onChange={(event) => setSearchQuery(event.target.value)}
+                value={fullName}
+                onChange={(event) => setFullName(event.target.value)}
               />
             </Form.Group>
             <Form.Group style={{ width: "50%" }}>
@@ -207,10 +218,22 @@ function UserResumes() {
                 <Form.Check
                   type="checkbox"
                   label="Darbo patirtis privaloma"
-                  checked={hasExperience}
+                  checked={experience}
                   onChange={(event) => {
-                    setHasExperience(event.target.checked);
+                    setExperience(event.target.checked);
                   }}
+                />
+              </div>
+              <div>
+                <p>
+                  <GiReceiveMoney className="me-2" /> Atlyginimas nuo: {salary}€
+                </p>
+                <input
+                  type="range"
+                  max="20000"
+                  value={salary}
+                  onChange={handleInputChange}
+                  style={{ width: "80%" }}
                 />
               </div>
             </div>
@@ -298,6 +321,10 @@ function UserResumes() {
                               <Card.Subtitle className="mb-2 text-muted">
                                 {resume.position}
                               </Card.Subtitle>
+                              <Card.Text>
+                                <GiReceiveMoney /> Atlyginimas nuo{" "}
+                                {resume.salary}€
+                              </Card.Text>
                               <Card.Text
                                 style={{ textDecoration: "underline" }}
                               >
@@ -391,6 +418,10 @@ function UserResumes() {
                             <Card.Subtitle className="mb-2 text-muted">
                               {resume.position}
                             </Card.Subtitle>
+                            <Card.Text>
+                              <GiReceiveMoney /> Atlyginimas nuo {resume.salary}
+                              €
+                            </Card.Text>
                             <Card.Text style={{ textDecoration: "underline" }}>
                               {resume.email}
                             </Card.Text>
@@ -484,6 +515,9 @@ function UserResumes() {
                           <Card.Subtitle className="mb-2 text-muted">
                             {resume.position}
                           </Card.Subtitle>
+                          <Card.Text>
+                            <GiReceiveMoney /> Atlyginimas nuo {resume.salary}€
+                          </Card.Text>
                           <Card.Text style={{ textDecoration: "underline" }}>
                             {resume.email}
                           </Card.Text>
@@ -578,6 +612,10 @@ function UserResumes() {
                                 <Card.Subtitle className="mb-2 text-muted">
                                   {resume.position}
                                 </Card.Subtitle>
+                                <Card.Text>
+                                  <GiReceiveMoney /> Atlyginimas nuo{" "}
+                                  {resume.salary}€
+                                </Card.Text>
                                 <Card.Text
                                   style={{ textDecoration: "underline" }}
                                 >

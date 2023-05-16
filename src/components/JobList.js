@@ -152,8 +152,6 @@ function JobList({ data, currentPage, totalPages }) {
   return (
     <>
       {location.pathname === "/jobs/" ? <JobSearch /> : ""}
-      {/* {location.pathname !== "/profile/" ||
-        (location.pathname !== "/company/profile/" && ( */}
       {jobs.length > 0 ? (
         <div className="me-2">
           <h3>Rikiuoti</h3>
@@ -193,7 +191,11 @@ function JobList({ data, currentPage, totalPages }) {
                     <Row key={job.id}>
                       <Col className="mb-2">
                         <Card
-                          className="mb-3 shadow-card"
+                          className={
+                            job.isHidden
+                              ? "mb-3 shadow-card hidden-job"
+                              : "mb-3 shadow-card"
+                          }
                           style={{
                             borderRadius: "20px",
                             border: "1px solid #f2f2f2",
@@ -411,15 +413,7 @@ function JobList({ data, currentPage, totalPages }) {
                                 <GiReceiveMoney /> Atlyginimas nuo: {job.salary}
                                 €
                               </Card.Subtitle>
-                              {job.totalWorkHours ? (
-                                <p className="mb-1">
-                                  <BsClock /> Pilnas etatas
-                                </p>
-                              ) : (
-                                <p className="mb-1">
-                                  <BsClock /> Pusė etato
-                                </p>
-                              )}
+                              <span> {job.totalWorkHours}</span>
                               {job.remoteWork ? (
                                 <p className="mb-1">
                                   <BsPersonWorkspace /> Darbas nuotoliniu
