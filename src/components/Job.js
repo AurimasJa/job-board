@@ -280,7 +280,7 @@ function Job() {
                     )}
                     <hr />
                     <Card.Text>
-                      <BsClock className="me-2" /> Darbo laikas:{" "}
+                      <BsClock className="me-2" /> Etatas:{" "}
                       <span> {selectedJob.totalWorkHours}</span>
                     </Card.Text>
                     <Card.Text>

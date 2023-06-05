@@ -40,6 +40,9 @@ function ViewResume() {
       if (user && user[0] && user[0] === response.data.userId) {
         setResumes(response.data);
       }
+      // else {
+      //   navigate("/");
+      // }
     }
   };
   useEffect(() => {

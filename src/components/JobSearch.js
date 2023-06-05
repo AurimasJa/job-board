@@ -259,20 +259,26 @@ function JobSearch() {
                 </Col>
                 {isOtherSelected && (
                   <div>
-                    <input
-                      type="text"
-                      value={otherPosition}
-                      onChange={handleAdditionalPositionSearch}
-                    />
-                    <Button
-                      onClick={handleAddPosition}
-                      disabled={isExistLength}
-                    >
-                      Pridėti
-                    </Button>
-                    <Button onClick={handleRemovePosition} disabled={isExist}>
-                      Ištrinti
-                    </Button>
+                    <label>Įvesk pozicijos sritį ir spausk pridėti</label>
+
+                    <div>
+                      <input
+                        className="me-3"
+                        type="text"
+                        value={otherPosition}
+                        onChange={handleAdditionalPositionSearch}
+                      />
+                      <Button
+                        className="me-3"
+                        onClick={handleAddPosition}
+                        disabled={isExistLength}
+                      >
+                        Pridėti
+                      </Button>
+                      <Button onClick={handleRemovePosition} disabled={isExist}>
+                        Ištrinti
+                      </Button>
+                    </div>
                   </div>
                 )}
               </Row>

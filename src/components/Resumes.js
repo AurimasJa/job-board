@@ -230,8 +230,10 @@ function Resumes() {
             <Row className="mt-3">
               <Col md={4}>
                 {resumes.map((resume) => (
-                  <>
+                  <React.Fragment key={resume.id}>
+                    {console.log(resume)}
                     <Card
+                      key={resume.id}
                       className={
                         selectedResume.id && selectedResume.id === resume.id
                           ? "selected-resume mb-3"
@@ -366,7 +368,7 @@ function Resumes() {
                         )}
                       </div>
                     </Card>
-                  </>
+                  </React.Fragment>
                 ))}
               </Col>
               <Col md={8}>

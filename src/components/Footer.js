@@ -14,7 +14,7 @@ function Footer() {
       <Container>
         <Row>
           <Col md={4} className="text-left text-md-left">
-            <p>Puslapio informacija</p>
+            <p>aurimas@adarbai.lt</p>
           </Col>
           <Col md={4} className="text-center">
             <p>Aurimas Janulaitis</p>
